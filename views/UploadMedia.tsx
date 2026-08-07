@@ -97,6 +97,7 @@ const UploadMedia: React.FC<UploadMediaProps> = ({ patients, onUpload, studyGrou
         notes: otNotes,
         newSurgeryTitle,
         newSurgeryDate,
+        files: previewFiles.map(pf => pf.file),
       });
       setShowSuccess(true);
       setPreviewFiles([]);

@@ -12,6 +12,7 @@ import {
   Menu, Library, Plus, X, Fingerprint, Edit3, Trash2, CheckCircle2, KeyRound, UserCircle
 } from 'lucide-react';
 import { useSupabaseAuth } from './lib/hooks/useSupabaseAuth';
+import { supabase } from './lib/supabase';
 import { usePatients } from './lib/hooks/usePatients';
 import { useMedia } from './lib/hooks/useMedia';
 import { useStudyGroups } from './lib/hooks/useStudyGroups';
@@ -105,19 +106,48 @@ const App: React.FC = () => {
       await refetchPatients();
     }
 
-    await addMedia({
-      uhid: data.uhid,
-      surgeryId: surgeryId || '',
-      stage: data.stage,
-      type: MediaType.IMAGE,
-      url: 'https://picsum.photos/seed/new/1200/900',
-      uploadedAt: new Date().toISOString(),
-      tags: [],
-      storageLocation: StorageLocation.LOCAL,
-      notes: data.notes || undefined,
-    });
+    const files: File[] = data.files ?? [];
+    const uploadTime = Date.now();
 
-    addEntry(authUser!.id, authUser!.name, 'Intake Upload', data.uhid, `Uploaded session assets for ${data.stage} phase.`).catch(() => {});
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const type = file.type.startsWith('video/') ? MediaType.VIDEO
+        : file.type.startsWith('audio/') ? MediaType.AUDIO
+        : file.type === 'application/pdf' ? MediaType.PDF
+        : MediaType.IMAGE;
+
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `${authUser!.id}/${data.uhid}/${uploadTime}-${i}-${safeName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('opus-media')
+        .upload(storagePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('opus-media')
+        .getPublicUrl(storagePath);
+
+      await addMedia({
+        uhid: data.uhid,
+        surgeryId: surgeryId || '',
+        stage: data.stage,
+        type,
+        url: publicUrl,
+        uploadedAt: new Date().toISOString(),
+        tags: [],
+        storageLocation: StorageLocation.LOCAL,
+        notes: i === 0 ? (data.notes || undefined) : undefined,
+      });
+    }
+
+    if (files.length === 0 && data.notes) {
+      addEntry(authUser!.id, authUser!.name, 'Intake Upload', data.uhid, `Logged clinical notes for ${data.stage} phase.`).catch(() => {});
+      return;
+    }
+
+    addEntry(authUser!.id, authUser!.name, 'Intake Upload', data.uhid, `Uploaded ${files.length} session asset${files.length === 1 ? '' : 's'} for ${data.stage} phase.`).catch(() => {});
   };
 
   const processSecurityAction = async () => {

@@ -242,6 +242,20 @@ try {
   for (const m of [m1, m2, m3, m4]) { const { error } = await a.from('media_entries').insert(m); if (error) { ok = false; msg = error.message; } }
   check('insert all 4 media types (useMedia.addMedia)', ok, msg);
 
+  // Storage round-trip (real file → public URL → fetch → delete)
+  const storagePath = `${userA.id}/${UHID_A}/test-${stamp}.png`;
+  const fakePng = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82]);
+  const { error: upObjErr } = await a.storage.from('opus-media').upload(storagePath, fakePng, { contentType: 'image/png' });
+  check('storage: upload object to opus-media (authenticated)', !upObjErr, upObjErr?.message ?? '');
+  const pubUrl = a.storage.from('opus-media').getPublicUrl(storagePath).data.publicUrl;
+  let httpOk = false;
+  try { const r = await fetch(pubUrl); httpOk = r.status === 200; } catch { httpOk = false; }
+  check('storage: public URL serves the file (HTTP 200)', httpOk, pubUrl);
+  const { error: crossObjErr } = await b.storage.from('opus-media').upload(`${userA.id}/${UHID_A}/foreign-${stamp}.png`, fakePng, { contentType: 'image/png' });
+  check('storage: B cannot upload into A\'s folder (RLS)', !!crossObjErr, crossObjErr ? crossObjErr.message : 'ALLOWED — folder isolation broken');
+  const { error: delObjErr } = await a.storage.from('opus-media').remove([storagePath]);
+  check('storage: object deleted (cleanup)', !delObjErr, delObjErr?.message ?? '');
+
   let bad = await a.from('media_entries').insert({ ...m1, stage: 'Not-a-stage' });
   check('CHECK constraint rejects invalid stage', !!bad.error, bad.error?.message ?? 'no error');
   bad = await a.from('media_entries').insert({ ...m1, type: 'dicom' });

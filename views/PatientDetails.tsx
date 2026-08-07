@@ -44,7 +44,7 @@ const MediaItem: React.FC<{
             loop 
             playsInline
             className="w-full h-full object-cover transition-all duration-500"
-            poster={m.thumbnailUrl || `https://picsum.photos/seed/${m.id}/600/600`}
+            poster={m.thumbnailUrl}
           />
           <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
             <div className="bg-white/90 backdrop-blur-md p-3 rounded-full text-slate-900 shadow-lg group-hover:scale-110 transition-transform">
