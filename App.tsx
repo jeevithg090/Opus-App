@@ -382,7 +382,7 @@ const App: React.FC = () => {
 
       {/* Cohort Modal */}
       {showStudyModal && editingStudy && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[300] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[500] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-[3rem] shadow-2xl p-10 animate-in zoom-in-95 overflow-y-auto max-h-[90vh] no-scrollbar">
             <div className="flex justify-between items-center mb-10">
               <h2 className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-900 italic leading-none">{editingStudy.id === 'temp' ? 'New' : 'Update'} Unit</h2>
@@ -399,7 +399,7 @@ const App: React.FC = () => {
 
       {/* Record Edit Modal */}
       {patientToEdit && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[300] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[500] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-[3rem] shadow-2xl p-10 animate-in zoom-in-95 max-h-[90vh] no-scrollbar">
             <div className="flex justify-between items-center mb-10">
               <div className="flex items-center gap-3">
@@ -440,7 +440,7 @@ const App: React.FC = () => {
       {/* Security Checkpoint */}
       {securityContext && (
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-2xl z-[500] flex items-center justify-center p-6">
-          <div className="bg-white w-full max-w-sm rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.5)] p-10 animate-in zoom-in-95 text-center space-y-10">
+          <div className="bg-white w-full max-w-sm rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.5)] p-6 md:p-10 animate-in zoom-in-95 text-center space-y-10">
             <div className="mx-auto w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-teal-600 shadow-inner border border-slate-100">
               {isVerifying ? <div className="w-8 h-8 border-4 border-teal-600/20 border-t-teal-600 rounded-full animate-spin" /> : <KeyRound size={36} className="animate-pulse" />}
             </div>

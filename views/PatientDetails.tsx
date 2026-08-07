@@ -78,7 +78,7 @@ const MediaItem: React.FC<{
         <div className="w-full h-full relative group">
           <img src={m.url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Clinical asset" />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-            <Maximize2 size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Maximize2 size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100" />
           </div>
         </div>
       )}
@@ -96,7 +96,7 @@ const MediaItem: React.FC<{
       </div>
 
       {/* Quick Action Button */}
-      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-200">
+      <div className="absolute top-3 right-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
         <button 
           onClick={(e) => { e.stopPropagation(); onDownload(m); }} 
           className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-slate-700 hover:bg-slate-900 hover:text-white transition-all shadow-md border border-slate-200"

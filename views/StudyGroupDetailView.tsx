@@ -147,7 +147,7 @@ const StudyGroupDetailView: React.FC<StudyGroupDetailViewProps> = ({
 
       {/* Enrollment Registry Modal */}
       {isAdding && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[300] flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-8 animate-in slide-in-from-bottom-10 duration-500 max-h-[90vh] overflow-y-auto space-y-6">
             <div className="flex justify-between items-center sticky top-0 bg-white z-10 pb-2">
               <h2 className="text-sm font-bold text-slate-900">Cohort Enrollment</h2>

@@ -181,7 +181,7 @@ const Dashboard: React.FC<DashboardProps> = ({ patients, onAddPatient, onSelectP
       {/* Registration Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[500] flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 md:p-8 shadow-2xl animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-300 sm:duration-200">
+          <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 md:p-8 shadow-2xl animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-300 sm:duration-200 max-h-[90vh] overflow-y-auto no-scrollbar">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg md:text-xl font-bold text-slate-900">New Patient Enrollment</h2>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 p-1 transition-colors"><X size={24} /></button>

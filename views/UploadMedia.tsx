@@ -286,7 +286,7 @@ const UploadMedia: React.FC<UploadMediaProps> = ({ patients, onUpload, studyGrou
                       <button 
                         type="button" 
                         onClick={() => removeFile(i)} 
-                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-md shadow-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                       >
                         <Trash2 size={10} />
                       </button>
