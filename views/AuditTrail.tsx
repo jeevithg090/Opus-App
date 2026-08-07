@@ -62,23 +62,23 @@ const AuditTrail: React.FC<AuditTrailProps> = ({ logs, onBack }) => {
                   <div className="w-8 h-8 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-400"><User size={14} /></div>
                   <div>
                     <p className="text-sm font-bold text-slate-900">{log.userName}</p>
-                    <p className="text-[10px] font-mono text-slate-400">{log.userId.slice(-8)}</p>
+                    <p className="text-[12px] font-mono text-slate-400">{log.userId.slice(-8)}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] font-bold text-slate-400 flex items-center gap-1 justify-end">
+                  <p className="text-[12px] font-bold text-slate-400 flex items-center gap-1 justify-end">
                     <Clock size={12} className="text-teal-600" />
                     {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
-                  <p className="text-[10px] text-slate-400">{new Date(log.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}</p>
+                  <p className="text-[12px] text-slate-400">{new Date(log.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}</p>
                 </div>
               </div>
               <div className="space-y-1 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-[10px] font-bold text-teal-600 uppercase tracking-tight">{log.action}</p>
+                <p className="text-[12px] font-bold text-teal-600 uppercase tracking-tight">{log.action}</p>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">{log.details}</p>
               </div>
               <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] font-mono font-bold text-slate-400 bg-white px-2 py-0.5 rounded border border-slate-200">ID: {log.targetId}</span>
+                <span className="text-[12px] font-mono font-bold text-slate-400 bg-white px-2 py-0.5 rounded border border-slate-200">ID: {log.targetId}</span>
               </div>
             </div>
           ))
@@ -96,10 +96,10 @@ const AuditTrail: React.FC<AuditTrailProps> = ({ logs, onBack }) => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">User Identity</th>
-                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Clinical Action</th>
-                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Target Context</th>
-                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Timestamp</th>
+                <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest">User Identity</th>
+                <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest">Clinical Action</th>
+                <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest">Target Context</th>
+                <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest text-right">Timestamp</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -110,26 +110,26 @@ const AuditTrail: React.FC<AuditTrailProps> = ({ logs, onBack }) => {
                       <div className="w-8 h-8 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-teal-600 group-hover:border-teal-100 transition-colors"><User size={14} /></div>
                       <div>
                         <p className="text-sm font-bold text-slate-900 leading-none">{log.userName}</p>
-                        <p className="text-[10px] font-mono text-slate-400 mt-1">{log.userId.slice(-8)}</p>
+                        <p className="text-[12px] font-mono text-slate-400 mt-1">{log.userId.slice(-8)}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-8 py-5">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-teal-600 uppercase tracking-tight">{log.action}</p>
+                      <p className="text-[12px] font-bold text-teal-600 uppercase tracking-tight">{log.action}</p>
                       <p className="text-xs text-slate-500 leading-tight font-medium max-w-xs truncate">{log.details}</p>
                     </div>
                   </td>
                   <td className="px-8 py-5">
-                    <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">{log.targetId}</span>
+                    <span className="text-[12px] font-mono font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">{log.targetId}</span>
                   </td>
                   <td className="px-8 py-5 text-right">
                     <div className="flex flex-col items-end gap-1">
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+                      <div className="flex items-center gap-1.5 text-[12px] font-bold text-slate-400">
                         <Clock size={12} className="text-teal-600" />
                         {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
-                      <p className="text-[10px] text-slate-400">{new Date(log.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                      <p className="text-[12px] text-slate-400">{new Date(log.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                     </div>
                   </td>
                 </tr>

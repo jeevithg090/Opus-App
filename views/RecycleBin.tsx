@@ -62,11 +62,11 @@ const RecycleBin: React.FC<RecycleBinProps> = ({ deletedPatients, onRestore, onP
                 
                 <div className="flex flex-col gap-2 p-4 bg-slate-50 rounded-xl border border-slate-100">
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Archived On</span>
+                    <span className="text-[12px] font-bold uppercase tracking-wider text-slate-400">Archived On</span>
                     <span className="text-xs font-medium text-slate-600">{new Date(p.deletedAt!).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Retention</span>
+                    <span className="text-[12px] font-bold uppercase tracking-wider text-slate-400">Retention</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${daysLeft <= 5 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-slate-200 text-slate-700'}`}>{daysLeft} Days</span>
                   </div>
                 </div>
@@ -102,10 +102,10 @@ const RecycleBin: React.FC<RecycleBinProps> = ({ deletedPatients, onRestore, onP
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-8 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Record Identity</th>
-                <th className="px-8 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Archival Date</th>
-                <th className="px-8 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Retention Remaining</th>
-                <th className="px-8 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Actions</th>
+                <th className="px-8 py-4 text-left text-[12px] font-bold text-slate-400 uppercase tracking-widest">Record Identity</th>
+                <th className="px-8 py-4 text-left text-[12px] font-bold text-slate-400 uppercase tracking-widest">Archival Date</th>
+                <th className="px-8 py-4 text-left text-[12px] font-bold text-slate-400 uppercase tracking-widest">Retention Remaining</th>
+                <th className="px-8 py-4 text-right text-[12px] font-bold text-slate-400 uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -120,7 +120,7 @@ const RecycleBin: React.FC<RecycleBinProps> = ({ deletedPatients, onRestore, onP
                         </div>
                         <div>
                           <p className="text-sm font-bold text-slate-900 leading-none">{p.name}</p>
-                          <p className="text-[10px] font-mono text-slate-400 mt-1">{p.uhid}</p>
+                          <p className="text-[12px] font-mono text-slate-400 mt-1">{p.uhid}</p>
                         </div>
                       </div>
                     </td>

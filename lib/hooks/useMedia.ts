@@ -11,7 +11,7 @@ interface UseMediaReturn {
   refetch: () => Promise<void>;
 }
 
-export function useMedia(): UseMediaReturn {
+export function useMedia(authUserId: string | null): UseMediaReturn {
   const [media, setMedia] = useState<MediaEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,8 +27,8 @@ export function useMedia(): UseMediaReturn {
   };
 
   useEffect(() => {
-    fetchMedia(true);
-  }, []);
+    if (authUserId) fetchMedia(true);
+  }, [authUserId]);
 
   const addMedia = async (entry: Omit<MediaEntry, 'id'>) => {
     const { error } = await supabase.from('media_entries').insert({

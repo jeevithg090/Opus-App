@@ -103,7 +103,7 @@ const Dashboard: React.FC<DashboardProps> = ({ patients, onAddPatient, onSelectP
 
       {/* Recent Activity */}
       <div className="space-y-3 md:space-y-4">
-        <h2 className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+        <h2 className="text-[12px] md:text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
           <Clock size={12} /> Recent Activity
         </h2>
         <div className="flex gap-3 md:gap-4 overflow-x-auto pb-2 no-scrollbar -mx-4 px-4">
@@ -113,14 +113,14 @@ const Dashboard: React.FC<DashboardProps> = ({ patients, onAddPatient, onSelectP
                 <>
                   <img src={entry.item.url} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-3">
-                    <p className="text-white text-[10px] font-mono font-medium truncate">{entry.item.uhid}</p>
+                    <p className="text-white text-[12px] font-mono font-medium truncate">{entry.item.uhid}</p>
                   </div>
                 </>
               ) : (
                 <div className="w-full h-full p-4 flex flex-col justify-between bg-slate-50">
                   <FileText size={16} className="text-teal-600" />
-                  <p className="text-[11px] text-slate-600 line-clamp-4 leading-relaxed italic">"{entry.item.otNotes}"</p>
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-tight truncate">{entry.item.name}</p>
+                  <p className="text-[13px] text-slate-600 line-clamp-4 leading-relaxed italic">"{entry.item.otNotes}"</p>
+                  <p className="text-[12px] font-semibold text-slate-400 uppercase tracking-tight truncate">{entry.item.name}</p>
                 </div>
               )}
             </div>
@@ -143,7 +143,7 @@ const Dashboard: React.FC<DashboardProps> = ({ patients, onAddPatient, onSelectP
                   <User size={24} />
                 </div>
                 {pod !== null && (
-                  <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-1 rounded-full border border-teal-100">POD {pod}</span>
+                  <span className="text-[12px] font-bold text-teal-700 bg-teal-50 px-2 py-1 rounded-full border border-teal-100">POD {pod}</span>
                 )}
               </div>
 
@@ -151,7 +151,7 @@ const Dashboard: React.FC<DashboardProps> = ({ patients, onAddPatient, onSelectP
                 <h3 className="font-bold text-slate-900 text-lg leading-tight">
                   {p.name}
                 </h3>
-                <p className="text-slate-400 font-mono text-[11px] mt-1">{p.uhid}</p>
+                <p className="text-slate-400 font-mono text-[13px] mt-1">{p.uhid}</p>
               </div>
               
               <div className="p-3 bg-slate-50 rounded-xl">
@@ -161,12 +161,12 @@ const Dashboard: React.FC<DashboardProps> = ({ patients, onAddPatient, onSelectP
               <div className="flex justify-between items-center mt-auto pt-2">
                 <div className="flex -space-x-2">
                   {p.studyGroupIds.slice(0, 3).map(id => (
-                    <div key={id} className="w-6 h-6 rounded-full bg-teal-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-teal-700 uppercase" title={id}>
+                    <div key={id} className="w-6 h-6 rounded-full bg-teal-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-teal-700 uppercase" title={id}>
                       {id.charAt(0)}
                     </div>
                   ))}
                   {p.studyGroupIds.length > 3 && (
-                    <div className="w-6 h-6 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-slate-500">
+                    <div className="w-6 h-6 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-slate-500">
                       +{p.studyGroupIds.length - 3}
                     </div>
                   )}
@@ -190,16 +190,16 @@ const Dashboard: React.FC<DashboardProps> = ({ patients, onAddPatient, onSelectP
             <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
               <div className="space-y-3 md:space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] md:text-xs font-semibold text-slate-500 ml-1">UHID Identifier</label>
+                  <label className="text-[12px] md:text-xs font-semibold text-slate-500 ml-1">UHID Identifier</label>
                   <input required placeholder="e.g. HOSP-2025-001" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all" value={newPatient.uhid} onChange={e => setNewPatient({...newPatient, uhid: e.target.value})} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] md:text-xs font-semibold text-slate-500 ml-1">Patient Name</label>
+                  <label className="text-[12px] md:text-xs font-semibold text-slate-500 ml-1">Patient Name</label>
                   <input required placeholder="Full legal name" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all" value={newPatient.name} onChange={e => setNewPatient({...newPatient, name: e.target.value})} />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] md:text-xs font-semibold text-slate-500 ml-1">Clinical Diagnosis</label>
+                <label className="text-[12px] md:text-xs font-semibold text-slate-500 ml-1">Clinical Diagnosis</label>
                 <textarea required placeholder="Brief clinical findings..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm h-24 md:h-32 resize-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all" value={newPatient.diagnosis} onChange={e => setNewPatient({...newPatient, diagnosis: e.target.value})} />
               </div>
               <button type="submit" disabled={isSubmitting} className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3.5 md:py-4 rounded-xl transition-all active:scale-[0.98] shadow-sm text-sm disabled:opacity-50">

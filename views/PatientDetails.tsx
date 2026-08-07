@@ -62,7 +62,7 @@ const MediaItem: React.FC<{
           </div>
           
           <div className="space-y-1 w-full">
-            <p className="text-[10px] font-semibold text-slate-900 truncate">{m.notes || 'Voice Memo'}</p>
+            <p className="text-[12px] font-semibold text-slate-900 truncate">{m.notes || 'Voice Memo'}</p>
             <div className="flex items-center justify-center gap-0.5 h-3">
               {[1, 2, 3, 4, 5, 6, 4, 2, 3, 5, 3, 2].map((h, i) => (
                 <div 
@@ -90,7 +90,7 @@ const MediaItem: React.FC<{
         ) : (
           <HardDrive size={10} className="text-slate-400" />
         )}
-        <span className="text-[9px] font-bold text-slate-600 uppercase tracking-tight">
+        <span className="text-[11px] font-bold text-slate-600 uppercase tracking-tight">
           {m.type}
         </span>
       </div>
@@ -158,8 +158,8 @@ const PatientDetails: React.FC<PatientDetailsProps> = ({
             <div className="space-y-1 min-w-0 flex-1">
               <h1 className="text-xl md:text-2xl font-bold text-slate-900 leading-tight truncate">{patient.name}</h1>
               <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                <span className="text-[10px] md:text-xs font-mono font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">{patient.uhid}</span>
-                <span className="text-[10px] md:text-xs font-medium text-slate-500">{patient.gender} • {patient.ageYears}Y</span>
+                <span className="text-[12px] md:text-xs font-mono font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">{patient.uhid}</span>
+                <span className="text-[12px] md:text-xs font-medium text-slate-500">{patient.gender} • {patient.ageYears}Y</span>
               </div>
             </div>
           </div>
@@ -180,17 +180,17 @@ const PatientDetails: React.FC<PatientDetailsProps> = ({
             <RefreshCw size={18} className={isSyncing ? 'animate-spin' : ''} />
           </div>
           <div className="space-y-1">
-            <p className="text-white text-[10px] md:text-xs font-bold uppercase tracking-wider">Cloud Synchronization</p>
+            <p className="text-white text-[12px] md:text-xs font-bold uppercase tracking-wider">Cloud Synchronization</p>
             <div className="flex gap-3 md:gap-4">
-              <span className="text-[9px] md:text-[10px] text-teal-500 font-bold flex items-center gap-1.5"><Cloud size={10} /> {syncStats.cloud} Synced</span>
-              <span className="text-[9px] md:text-[10px] text-slate-400 font-bold flex items-center gap-1.5"><HardDrive size={10} /> {syncStats.local} Local</span>
+              <span className="text-[11px] md:text-[12px] text-teal-500 font-bold flex items-center gap-1.5"><Cloud size={10} /> {syncStats.cloud} Synced</span>
+              <span className="text-[11px] md:text-[12px] text-slate-400 font-bold flex items-center gap-1.5"><HardDrive size={10} /> {syncStats.local} Local</span>
             </div>
           </div>
         </div>
         <button 
           onClick={triggerGlobalSync}
           disabled={isSyncing || syncStats.local === 0}
-          className={`w-full sm:w-auto px-6 md:px-8 py-3 rounded-xl text-[11px] md:text-xs font-bold transition-all active:scale-95 ${syncStats.local === 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-teal-600 text-white hover:bg-teal-500 shadow-lg shadow-teal-900/20'}`}
+          className={`w-full sm:w-auto px-6 md:px-8 py-3 rounded-xl text-[13px] md:text-xs font-bold transition-all active:scale-95 ${syncStats.local === 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-teal-600 text-white hover:bg-teal-500 shadow-lg shadow-teal-900/20'}`}
         >
           {isSyncing ? 'Syncing...' : syncStats.local === 0 ? 'Vault Secure' : 'Sync to Cloud'}
         </button>
@@ -222,7 +222,7 @@ const PatientDetails: React.FC<PatientDetailsProps> = ({
               <button 
                 key={stage} 
                 onClick={() => setActiveStage(stage)} 
-                className={`flex-1 py-2.5 text-[11px] font-bold transition-all rounded-xl ${activeStage === stage ? 'text-teal-700 bg-white shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
+                className={`flex-1 py-2.5 text-[13px] font-bold transition-all rounded-xl ${activeStage === stage ? 'text-teal-700 bg-white shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
               >
                 {stage}
               </button>
@@ -247,7 +247,7 @@ const PatientDetails: React.FC<PatientDetailsProps> = ({
                   </div>
                   <div className="space-y-1">
                     <p className="text-slate-400 font-bold text-xs">No assets in this stage</p>
-                    <p className="text-slate-300 text-[10px]">Upload new media to populate this segment</p>
+                    <p className="text-slate-300 text-[12px]">Upload new media to populate this segment</p>
                   </div>
                 </div>
               )}
@@ -261,7 +261,7 @@ const PatientDetails: React.FC<PatientDetailsProps> = ({
             <div className="p-2.5 bg-teal-50 text-teal-600 rounded-xl border border-teal-100"><Shield size={20} /></div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 leading-none">Clinical Findings</h3>
-              <p className="text-[10px] font-semibold text-slate-400 mt-1">Surgical Protocol Verified</p>
+              <p className="text-[12px] font-semibold text-slate-400 mt-1">Surgical Protocol Verified</p>
             </div>
           </div>
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 min-h-[200px] relative group overflow-hidden">
@@ -271,7 +271,7 @@ const PatientDetails: React.FC<PatientDetailsProps> = ({
              ) : (
                <div className="flex flex-col items-center justify-center h-full text-slate-300 py-8 text-center space-y-4">
                   <p className="text-xs font-bold">No notes recorded</p>
-                  <button onClick={onAddMedia} className="bg-white px-4 py-2 rounded-lg border border-slate-200 text-[10px] font-bold text-teal-600 hover:bg-teal-50 transition-colors shadow-sm">Add Notes</button>
+                  <button onClick={onAddMedia} className="bg-white px-4 py-2 rounded-lg border border-slate-200 text-[12px] font-bold text-teal-600 hover:bg-teal-50 transition-colors shadow-sm">Add Notes</button>
                </div>
              )}
           </div>
@@ -300,7 +300,7 @@ const PatientDetails: React.FC<PatientDetailsProps> = ({
                   </div>
                   <div className="space-y-2">
                     <h2 className="text-lg md:text-xl font-bold text-slate-900">Clinical Audio</h2>
-                    <p className="text-[10px] md:text-xs font-medium text-slate-400">{viewerMedia.notes || 'Anatomical Assessment Log'}</p>
+                    <p className="text-[12px] md:text-xs font-medium text-slate-400">{viewerMedia.notes || 'Anatomical Assessment Log'}</p>
                   </div>
                   <audio src={viewerMedia.url} controls className="w-full" />
                </div>
@@ -311,7 +311,7 @@ const PatientDetails: React.FC<PatientDetailsProps> = ({
             <div className="mt-6 md:mt-8 flex items-center gap-4 md:gap-6 px-6 md:px-8 py-3 md:py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10">
               <div className="text-left">
                 <p className="text-white text-xs md:text-sm font-bold">{viewerMedia.stage}</p>
-                <p className="text-slate-400 text-[9px] md:text-[10px] font-medium mt-1">{new Date(viewerMedia.uploadedAt).toLocaleDateString()}</p>
+                <p className="text-slate-400 text-[11px] md:text-[12px] font-medium mt-1">{new Date(viewerMedia.uploadedAt).toLocaleDateString()}</p>
               </div>
               <button 
                 onClick={() => { setDownloadModalMedia(viewerMedia); setViewerMedia(null); }} 
@@ -331,7 +331,7 @@ const PatientDetails: React.FC<PatientDetailsProps> = ({
             <div className="mx-auto w-14 h-14 md:w-16 md:h-16 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center border border-teal-100"><Download size={28} md:size={32} /></div>
             <div className="space-y-2">
               <h2 className="text-lg md:text-xl font-bold text-slate-900">Export Asset</h2>
-              <p className="text-[10px] md:text-xs text-slate-400 font-medium leading-relaxed">Select format for archival extraction</p>
+              <p className="text-[12px] md:text-xs text-slate-400 font-medium leading-relaxed">Select format for archival extraction</p>
             </div>
             <div className="grid grid-cols-2 gap-2">
               {['JPG', 'PNG', 'PDF', 'RAW'].map(f => (

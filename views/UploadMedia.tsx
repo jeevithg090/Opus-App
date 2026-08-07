@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
-import { Camera, Database, CheckCircle2, Trash2, CloudUpload, FileText, Plus, Music, FileUp, Video, Zap, ChevronDown } from 'lucide-react';
-import { Patient, SurgicalStage, StudyGroup } from '../types';
+import { Camera, Database, CheckCircle2, Trash2, CloudUpload, FileText, Plus, Music, FileUp, Video, Zap, ChevronDown, HardDrive, Cloud } from 'lucide-react';
+import { Patient, SurgicalStage, StudyGroup, StorageLocation } from '../types';
 
 interface UploadMediaProps {
   patients: Patient[];
@@ -26,6 +26,7 @@ const UploadMedia: React.FC<UploadMediaProps> = ({ patients, onUpload, studyGrou
   const [showNewSurgeryForm, setShowNewSurgeryForm] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [previewFiles, setPreviewFiles] = useState<PreviewFile[]>([]);
+  const [storageLocation, setStorageLocation] = useState<StorageLocation>(StorageLocation.LOCAL);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -98,6 +99,7 @@ const UploadMedia: React.FC<UploadMediaProps> = ({ patients, onUpload, studyGrou
         newSurgeryTitle,
         newSurgeryDate,
         files: previewFiles.map(pf => pf.file),
+        storageLocation,
       });
       setShowSuccess(true);
       setPreviewFiles([]);
@@ -148,7 +150,7 @@ const UploadMedia: React.FC<UploadMediaProps> = ({ patients, onUpload, studyGrou
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         {/* Step 1: Context Selection */}
         <div className="bg-white p-5 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-          <div className="flex items-center gap-3 text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">
+          <div className="flex items-center gap-3 text-[12px] md:text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">
             <Database size={14} md:size={16} className="text-teal-500" />
             Registry Association
           </div>
@@ -220,7 +222,7 @@ const UploadMedia: React.FC<UploadMediaProps> = ({ patients, onUpload, studyGrou
                   <div className="flex justify-between items-center px-1">
                     <label className="text-xs font-medium text-slate-500">Surgical Phase</label>
                     {currentPOD !== null && (
-                      <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-100">
+                      <span className="text-[12px] font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-100">
                         POD {currentPOD}
                       </span>
                     )}
@@ -272,7 +274,7 @@ const UploadMedia: React.FC<UploadMediaProps> = ({ patients, onUpload, studyGrou
             {/* Asset Preview Queue */}
             {previewFiles.length > 0 && (
               <div className="space-y-3 pt-2">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Queue — {previewFiles.length} Assets</p>
+                <p className="text-[12px] font-bold text-slate-400 uppercase tracking-wider ml-1">Queue — {previewFiles.length} Assets</p>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                   {previewFiles.map((file, i) => (
                     <div key={i} className="aspect-square bg-slate-50 rounded-xl overflow-hidden relative border border-slate-200 shadow-sm group animate-in zoom-in-95">
@@ -280,7 +282,7 @@ const UploadMedia: React.FC<UploadMediaProps> = ({ patients, onUpload, studyGrou
                       {file.type !== 'image' && (
                         <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 gap-1">
                           <FileText size={16} />
-                          <span className="text-[8px] font-bold uppercase">{file.type}</span>
+                          <span className="text-[10px] font-bold uppercase">{file.type}</span>
                         </div>
                       )}
                       <button 
@@ -295,6 +297,24 @@ const UploadMedia: React.FC<UploadMediaProps> = ({ patients, onUpload, studyGrou
                 </div>
               </div>
             )}
+
+            <div className="space-y-3">
+              <label className="text-xs font-medium text-slate-500 ml-1">Storage Destination</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[StorageLocation.LOCAL, StorageLocation.GOOGLE_DRIVE].map(loc => (
+                  <button
+                    key={loc}
+                    type="button"
+                    onClick={() => setStorageLocation(loc)}
+                    className={`px-4 py-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${storageLocation === loc ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-100 text-slate-400 bg-slate-50/50 hover:border-slate-200'}`}
+                  >
+                    {loc === StorageLocation.LOCAL ? <HardDrive size={14} /> : <Cloud size={14} />}
+                    {loc === StorageLocation.LOCAL ? 'Local Vault' : 'Google Drive'}
+                    {storageLocation === loc && <CheckCircle2 size={14} className="text-teal-600" />}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <button 
               type="submit" 

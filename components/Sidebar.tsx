@@ -32,9 +32,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onLogout, 
             className={`relative flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeView === item.id ? 'text-teal-600' : 'text-slate-400'}`}
           >
             <item.icon size={20} strokeWidth={activeView === item.id ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">{item.label}</span>
+            <span className="text-[12px] font-medium">{item.label}</span>
             {item.count !== undefined && item.count > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-teal-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+              <span className="absolute top-1 right-1 w-4 h-4 bg-teal-600 text-white text-[11px] font-bold rounded-full flex items-center justify-center border-2 border-white">
                 {item.count}
               </span>
             )}
@@ -60,7 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, onLogout, 
                 <span className="text-sm">{item.label}</span>
               </div>
               {item.count !== undefined && item.count > 0 && (
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeView === item.id ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                <span className={`text-[12px] px-2 py-0.5 rounded-full font-bold ${activeView === item.id ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
                   {item.count}
                 </span>
               )}

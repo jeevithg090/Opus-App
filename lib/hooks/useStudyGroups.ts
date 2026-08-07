@@ -13,7 +13,7 @@ interface UseStudyGroupsReturn {
   refetch: () => Promise<void>;
 }
 
-export function useStudyGroups(): UseStudyGroupsReturn {
+export function useStudyGroups(authUserId: string | null): UseStudyGroupsReturn {
   const [studyGroups, setStudyGroups] = useState<StudyGroup[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,8 +33,8 @@ export function useStudyGroups(): UseStudyGroupsReturn {
   };
 
   useEffect(() => {
-    fetchGroups(true);
-  }, []);
+    if (authUserId) fetchGroups(true);
+  }, [authUserId]);
 
   const createGroup = async (name: string, description: string) => {
     const { data } = await supabase
@@ -52,18 +52,20 @@ export function useStudyGroups(): UseStudyGroupsReturn {
   };
 
   const enrollPatient = async (studyGroupId: string, patientUhid: string) => {
-    await supabase.from('study_group_patients').insert({
+    const { error } = await supabase.from('study_group_patients').insert({
       study_group_id: studyGroupId,
       patient_uhid: patientUhid,
     });
+    if (error) throw error;
     await fetchGroups();
   };
 
   const unenrollPatient = async (studyGroupId: string, patientUhid: string) => {
-    await supabase.from('study_group_patients')
+    const { error } = await supabase.from('study_group_patients')
       .delete()
       .eq('study_group_id', studyGroupId)
       .eq('patient_uhid', patientUhid);
+    if (error) throw error;
     await fetchGroups();
   };
 

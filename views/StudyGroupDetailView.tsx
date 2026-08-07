@@ -17,6 +17,7 @@ const StudyGroupDetailView: React.FC<StudyGroupDetailViewProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const enrolledPatients = patients.filter(p => p.studyGroupIds.includes(group.id));
   const availablePatients = patients.filter(p => !p.studyGroupIds.includes(group.id));
@@ -37,12 +38,18 @@ const StudyGroupDetailView: React.FC<StudyGroupDetailViewProps> = ({
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Study Groups
         </button>
         <button 
-          onClick={() => setIsAdding(true)} 
+          onClick={() => { setIsAdding(true); setActionError(null); }} 
           className="w-full sm:w-auto bg-slate-900 text-white px-6 py-3.5 rounded-xl text-sm font-bold shadow-lg flex items-center justify-center gap-2 hover:bg-slate-800 active:scale-95 transition-all"
         >
           <UserPlus size={18} /> Enroll Patient
         </button>
       </div>
+
+      {actionError && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-xs font-bold text-red-600">
+          {actionError}
+        </div>
+      )}
 
       {/* Cohort Identity Card */}
       <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
@@ -56,7 +63,7 @@ const StudyGroupDetailView: React.FC<StudyGroupDetailViewProps> = ({
           </div>
           <div className="text-left sm:text-right bg-slate-50 sm:bg-transparent p-5 sm:p-0 rounded-2xl w-full sm:w-auto flex flex-row sm:flex-col justify-between items-center sm:items-end border border-slate-100 sm:border-none">
              <span className="text-4xl font-bold text-teal-600 leading-none">{enrolledPatients.length}</span>
-             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Enrolled Patients</span>
+             <span className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mt-1">Enrolled Patients</span>
           </div>
         </div>
       </div>
@@ -83,12 +90,12 @@ const StudyGroupDetailView: React.FC<StudyGroupDetailViewProps> = ({
                   <div className="w-10 h-10 bg-slate-900 text-teal-400 rounded-xl flex items-center justify-center font-bold text-sm">{p.name.charAt(0)}</div>
                   <div>
                     <p className="font-bold text-slate-900 text-sm leading-tight">{p.name}</p>
-                    <p className="text-[10px] font-mono text-slate-400 mt-1">{p.uhid}</p>
+                    <p className="text-[12px] font-mono text-slate-400 mt-1">{p.uhid}</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => onEditPatient(p)} className="p-2.5 bg-slate-50 text-slate-400 rounded-lg border border-slate-100"><Edit3 size={14} /></button>
-                  <button onClick={() => onUnenroll(p.uhid)} className="p-2.5 bg-red-50 text-red-400 rounded-lg border border-red-100"><UserMinus size={14} /></button>
+                  <button onClick={async () => { setActionError(null); try { await onUnenroll(p.uhid); } catch (err: any) { setActionError(err?.message || 'Failed to remove patient from group.'); } }} className="p-2.5 bg-red-50 text-red-400 rounded-lg border border-red-100"><UserMinus size={14} /></button>
                 </div>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
@@ -110,9 +117,9 @@ const StudyGroupDetailView: React.FC<StudyGroupDetailViewProps> = ({
           <table className="w-full text-left border-collapse">
              <thead>
                <tr className="bg-slate-50 border-b border-slate-200">
-                 <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Patient Identity</th>
-                 <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Surgical Assessment</th>
-                 <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                 <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest">Patient Identity</th>
+                 <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest">Surgical Assessment</th>
+                 <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
                </tr>
              </thead>
              <tbody className="divide-y divide-slate-100">
@@ -123,7 +130,7 @@ const StudyGroupDetailView: React.FC<StudyGroupDetailViewProps> = ({
                         <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center font-bold text-sm group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">{p.name.charAt(0)}</div>
                         <div>
                           <p className="font-bold text-slate-900 text-sm">{p.name}</p>
-                          <p className="text-[10px] font-mono text-slate-400 mt-1">{p.uhid}</p>
+                          <p className="text-[12px] font-mono text-slate-400 mt-1">{p.uhid}</p>
                         </div>
                       </div>
                    </td>
@@ -134,7 +141,7 @@ const StudyGroupDetailView: React.FC<StudyGroupDetailViewProps> = ({
                       <button onClick={() => onEditPatient(p)} className="p-2.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-teal-600 transition-all shadow-sm">
                         <Edit3 size={16} />
                       </button>
-                      <button onClick={() => onUnenroll(p.uhid)} className="p-2.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-red-500 transition-all shadow-sm">
+                      <button onClick={async () => { setActionError(null); try { await onUnenroll(p.uhid); } catch (err: any) { setActionError(err?.message || 'Failed to remove patient from group.'); } }} className="p-2.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-red-500 transition-all shadow-sm">
                         <UserMinus size={16} />
                       </button>
                    </td>
@@ -158,17 +165,23 @@ const StudyGroupDetailView: React.FC<StudyGroupDetailViewProps> = ({
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
                 Candidate selection for unit: <span className="text-teal-600 font-bold">{group.name}</span>.
               </p>
-              
+
+              {actionError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-600">
+                  {actionError}
+                </div>
+              )}
+
               <div className="space-y-2">
                  {availablePatients.length > 0 ? availablePatients.map(p => (
                    <button 
                     key={p.uhid} 
-                    onClick={() => { onEnroll(p.uhid); setIsAdding(false); }}
+                    onClick={async () => { setActionError(null); try { await onEnroll(p.uhid); setIsAdding(false); } catch (err: any) { setActionError(err?.message || 'Enrollment failed. Please try again.'); } }}
                     className="w-full text-left p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-teal-50 hover:border-teal-200 transition-all flex justify-between items-center group active:scale-[0.98]"
                    >
                      <div className="space-y-0.5">
                        <p className="font-bold text-slate-900 text-sm group-hover:text-teal-700">{p.name}</p>
-                       <p className="text-[10px] font-mono text-slate-400">{p.uhid}</p>
+                       <p className="text-[12px] font-mono text-slate-400">{p.uhid}</p>
                      </div>
                      <div className="p-2 bg-white rounded-lg border border-slate-200 shadow-sm group-hover:border-teal-200"><Plus size={18} className="text-slate-300 group-hover:text-teal-600" /></div>
                    </button>

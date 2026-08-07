@@ -15,7 +15,7 @@ interface UsePatientsReturn {
   refetch: () => Promise<void>;
 }
 
-export function usePatients(): UsePatientsReturn {
+export function usePatients(authUserId: string | null): UsePatientsReturn {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [deletedPatients, setDeletedPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,8 +40,8 @@ export function usePatients(): UsePatientsReturn {
   };
 
   useEffect(() => {
-    fetchPatients(true);
-  }, []);
+    if (authUserId) fetchPatients(true);
+  }, [authUserId]);
 
   const addPatient = async (p: Patient) => {
     const { error: patientError } = await supabase.from('patients').insert({

@@ -362,6 +362,39 @@ try {
   const { data: bLogs } = await b.from('audit_entries').select('user_id').eq('user_id', userA.id);
   check('B cannot read A\'s audit entries (RLS)', (bLogs ?? []).length === 0);
 
+  // ============ PHASE 5b: CROSS-SESSION PERSISTENCE ============
+  section('P5b. Logout → login — data persists across sessions (issue #1)');
+
+  const bMedia = { patient_uhid: UHID_B, surgery_id: null, stage: 'Pre-operative', type: 'image', url: `https://picsum.photos/seed/${stamp}b/600/400`, uploaded_at: new Date().toISOString(), tags: [], storage_location: 'Local Storage' };
+  const { error: bMediaErr } = await b.from('media_entries').insert(bMedia);
+  check('B uploads media before logout (setup)', !bMediaErr, bMediaErr?.message ?? '');
+
+  await b.auth.signOut();
+  const bAfterOut = await b.auth.getSession();
+  check('B signs out (session cleared)', !bAfterOut.data.session);
+
+  const siB2 = await b.auth.signInWithPassword({ email: U2.email, password: U2.password });
+  check('B re-signs in on the same client (logout → login)', !siB2.error, siB2.error?.message ?? '');
+
+  const relogPatients = await fetchPatients(b);
+  check('patient created before logout is visible after re-login', relogPatients.active.some(p => p.uhid === UHID_B), JSON.stringify(relogPatients.active.map(p => p.uhid)));
+  const relogMedia = await fetchMedia(b);
+  check('media uploaded before logout is visible after re-login', relogMedia.some(m => m.uhid === UHID_B), `count=${relogMedia.filter(m => m.uhid === UHID_B).length}`);
+  const relogGroups = await fetchGroups(b);
+  check('B sees only own groups after re-login (none leaked)', relogGroups.length === 0, `count=${relogGroups.length}`);
+  check('other user\'s patient still hidden after re-login (RLS)', !relogPatients.active.some(p => p.uhid === UHID_A));
+
+  await b.auth.signOut();
+  const c2 = client();
+  const c2SignIn = await c2.auth.signInWithPassword({ email: U2.email, password: U2.password });
+  check('fresh client sign-in succeeds (simulates new page load)', !c2SignIn.error, c2SignIn.error?.message ?? '');
+  const freshPatients = await fetchPatients(c2);
+  const freshMedia = await fetchMedia(c2);
+  check('fresh client sees persisted patient (page-load race fix)', freshPatients.active.some(p => p.uhid === UHID_B), JSON.stringify(freshPatients.active.map(p => p.uhid)));
+  check('fresh client sees persisted media (page-load race fix)', freshMedia.some(m => m.uhid === UHID_B), `count=${freshMedia.filter(m => m.uhid === UHID_B).length}`);
+  await c2.auth.signOut();
+  await b.auth.signInWithPassword({ email: U2.email, password: U2.password });
+
   // ============ PHASE 6: CLEANUP ============
   section('P6. Cleanup');
 

@@ -21,11 +21,11 @@ import { useAuditLogs } from './lib/hooks/useAuditLogs';
 
 const App: React.FC = () => {
   const { user: authUser, loading: authLoading, signIn, signUp, signOut } = useSupabaseAuth();
-  const { patients, deletedPatients, loading: patientsLoading, addPatient, updatePatient, softDelete, hardDelete, restore, refetch: refetchPatients } = usePatients();
-  const { media, loading: mediaLoading, addMedia, syncMedia } = useMedia();
-  const { studyGroups, loading: groupsLoading, createGroup, updateGroup, enrollPatient, unenrollPatient } = useStudyGroups();
+  const { patients, deletedPatients, loading: patientsLoading, addPatient, updatePatient, softDelete, hardDelete, restore, refetch: refetchPatients } = usePatients(authUser?.id ?? null);
+  const { media, loading: mediaLoading, addMedia, syncMedia } = useMedia(authUser?.id ?? null);
+  const { studyGroups, loading: groupsLoading, createGroup, updateGroup, enrollPatient, unenrollPatient } = useStudyGroups(authUser?.id ?? null);
   const { addSurgery } = useSurgeries();
-  const { logs: auditLogs, addEntry } = useAuditLogs();
+  const { logs: auditLogs, addEntry } = useAuditLogs(authUser?.id ?? null);
 
   const [activeView, setActiveView] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -137,17 +137,17 @@ const App: React.FC = () => {
         url: publicUrl,
         uploadedAt: new Date().toISOString(),
         tags: [],
-        storageLocation: StorageLocation.LOCAL,
+        storageLocation: data.storageLocation ?? StorageLocation.LOCAL,
         notes: i === 0 ? (data.notes || undefined) : undefined,
       });
     }
 
     if (files.length === 0 && data.notes) {
-      addEntry(authUser!.id, authUser!.name, 'Intake Upload', data.uhid, `Logged clinical notes for ${data.stage} phase.`).catch(() => {});
+      addEntry(authUser!.id, authUser!.name, 'Intake Upload', data.uhid, `Logged clinical notes for ${data.stage} phase (${data.storageLocation ?? StorageLocation.LOCAL}).`).catch(() => {});
       return;
     }
 
-    addEntry(authUser!.id, authUser!.name, 'Intake Upload', data.uhid, `Uploaded ${files.length} session asset${files.length === 1 ? '' : 's'} for ${data.stage} phase.`).catch(() => {});
+    addEntry(authUser!.id, authUser!.name, 'Intake Upload', data.uhid, `Uploaded ${files.length} session asset${files.length === 1 ? '' : 's'} for ${data.stage} phase (${data.storageLocation ?? StorageLocation.LOCAL}).`).catch(() => {});
   };
 
   const processSecurityAction = async () => {
@@ -189,11 +189,13 @@ const App: React.FC = () => {
 
   const handleEnrollPatient = async (uhid: string, studyId: string) => {
     await enrollPatient(studyId, uhid);
+    await refetchPatients();
     await addEntry(authUser!.id, authUser!.name, 'Group Enrollment', uhid, `Enrolled patient into study group ID: ${studyId}`);
   };
 
   const handleUnenrollPatient = async (uhid: string, studyId: string) => {
     await unenrollPatient(studyId, uhid);
+    await refetchPatients();
     await addEntry(authUser!.id, authUser!.name, 'Group Removal', uhid, `Removed patient from study group ID: ${studyId}`);
   };
 
@@ -240,9 +242,9 @@ const App: React.FC = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="space-y-1">
                 <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight italic uppercase leading-none">Research Units</h2>
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.4em]">Cohort Management</p>
+                <p className="text-slate-400 text-[12px] font-bold uppercase tracking-[0.4em]">Cohort Management</p>
               </div>
-              <button onClick={() => { setEditingStudy({id: 'temp', name: '', description: '', patientCount: 0}); setShowStudyModal(true); }} className="w-full sm:w-auto bg-slate-900 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-2xl md:rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2">
+              <button onClick={() => { setEditingStudy({id: 'temp', name: '', description: '', patientCount: 0}); setShowStudyModal(true); }} className="w-full sm:w-auto bg-slate-900 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-2xl md:rounded-[1.5rem] text-[12px] font-black uppercase tracking-widest shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2">
                 <Plus size={18} /> Create Cohort
               </button>
             </div>
@@ -257,10 +259,10 @@ const App: React.FC = () => {
                   <h3 className="font-black text-slate-900 text-lg md:text-xl mb-3 md:mb-4 pr-12 group-hover:text-teal-700 transition-colors italic uppercase leading-tight">{group.name}</h3>
                   <p className="text-slate-500 text-xs md:text-sm mb-8 md:mb-10 leading-relaxed line-clamp-2 italic">{group.description}</p>
                   <div className="flex justify-between items-center mt-auto">
-                    <div className="inline-flex items-center text-[8px] md:text-[9px] font-black uppercase tracking-widest text-teal-600 bg-teal-50 px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl border border-teal-100">
+                    <div className="inline-flex items-center text-[10px] md:text-[11px] font-black uppercase tracking-widest text-teal-600 bg-teal-50 px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl border border-teal-100">
                       <span>{group.patientCount} Records</span>
                     </div>
-                    <span className="text-[9px] md:text-[10px] font-black text-slate-300 uppercase tracking-widest group-hover:text-teal-600 transition-colors italic">Enter Unit &rarr;</span>
+                    <span className="text-[11px] md:text-[12px] font-black text-slate-300 uppercase tracking-widest group-hover:text-teal-600 transition-colors italic">Enter Unit &rarr;</span>
                   </div>
                 </div>
               ))}
@@ -289,7 +291,7 @@ const App: React.FC = () => {
             <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl inline-block mb-8 border border-slate-800">
                <OpusLogo size="md" />
             </div>
-            <p className="text-slate-400 font-black uppercase tracking-[0.5em] text-[10px]">Secure Clinical Storage</p>
+            <p className="text-slate-400 font-black uppercase tracking-[0.5em] text-[12px]">Secure Clinical Storage</p>
           </div>
           <div className="bg-white/90 backdrop-blur-3xl border border-white rounded-[3rem] p-10 shadow-2xl space-y-6">
             <p className="text-sm font-black text-slate-400 uppercase tracking-widest leading-relaxed">
@@ -335,7 +337,7 @@ const App: React.FC = () => {
               </button>
             </form>
 
-            <button onClick={() => { setAuthMode(authMode === 'signIn' ? 'signUp' : 'signIn'); setAuthError(null); }} className="w-full text-[10px] font-black text-teal-600 uppercase tracking-widest hover:text-teal-700 transition-colors">
+            <button onClick={() => { setAuthMode(authMode === 'signIn' ? 'signUp' : 'signIn'); setAuthError(null); }} className="w-full text-[12px] font-black text-teal-600 uppercase tracking-widest hover:text-teal-700 transition-colors">
               {authMode === 'signIn' ? 'Create an account' : 'Sign in instead'}
             </button>
           </div>
@@ -362,12 +364,12 @@ const App: React.FC = () => {
         <header className="px-6 md:px-12 py-5 bg-white/80 border-b border-slate-100 sticky top-0 z-[100] backdrop-blur-2xl flex items-center justify-between">
           <div className="flex items-center gap-4">
              <div className="block lg:hidden"><OpusLogo size="sm" /></div>
-             <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] hidden lg:inline italic">{activeView} segmented session</span>
+             <span className="text-[13px] font-black text-slate-400 uppercase tracking-[0.4em] hidden lg:inline italic">{activeView} segmented session</span>
           </div>
           <div className="flex items-center gap-4 md:gap-6">
             <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100 shadow-inner">
-               <div className="w-6 h-6 bg-teal-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold">{authUser?.name?.charAt(0) || 'U'}</div>
-               <span className="text-[11px] font-black text-slate-700 hidden sm:inline uppercase tracking-widest">{authUser?.name?.split(' ').pop()}</span>
+               <div className="w-6 h-6 bg-teal-600 rounded-full flex items-center justify-center text-white text-[12px] font-bold">{authUser?.name?.charAt(0) || 'U'}</div>
+               <span className="text-[13px] font-black text-slate-700 hidden sm:inline uppercase tracking-widest">{authUser?.name?.split(' ').pop()}</span>
             </div>
           </div>
         </header>
@@ -385,12 +387,12 @@ const App: React.FC = () => {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[500] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-[3rem] shadow-2xl p-10 animate-in zoom-in-95 overflow-y-auto max-h-[90vh] no-scrollbar">
             <div className="flex justify-between items-center mb-10">
-              <h2 className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-900 italic leading-none">{editingStudy.id === 'temp' ? 'New' : 'Update'} Unit</h2>
+              <h2 className="text-[13px] font-black uppercase tracking-[0.5em] text-slate-900 italic leading-none">{editingStudy.id === 'temp' ? 'New' : 'Update'} Unit</h2>
               <button onClick={() => {setEditingStudy(null); setShowStudyModal(false);}} className="text-slate-400 hover:text-slate-900 transition-colors p-2"><X size={24} /></button>
             </div>
             <form onSubmit={saveStudyGroup} className="space-y-8">
-              <div className="space-y-2"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Unit Identity</label><input value={editingStudy.name} onChange={e => setEditingStudy({...editingStudy, name: e.target.value})} className="w-full px-6 py-4 bg-slate-50 rounded-[1.2rem] border border-slate-100 font-black text-sm uppercase tracking-tight focus:ring-8 focus:ring-teal-500/5 transition-all outline-none" required /></div>
-              <div className="space-y-2"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Protocol / Notes</label><textarea value={editingStudy.description} onChange={e => setEditingStudy({...editingStudy, description: e.target.value})} className="w-full px-6 py-5 bg-slate-50 rounded-[1.2rem] border border-slate-100 font-bold text-sm h-40 resize-none focus:ring-8 focus:ring-teal-500/5 transition-all outline-none italic" required /></div>
+              <div className="space-y-2"><label className="text-[12px] font-black text-slate-400 uppercase tracking-widest px-1">Unit Identity</label><input value={editingStudy.name} onChange={e => setEditingStudy({...editingStudy, name: e.target.value})} className="w-full px-6 py-4 bg-slate-50 rounded-[1.2rem] border border-slate-100 font-black text-sm uppercase tracking-tight focus:ring-8 focus:ring-teal-500/5 transition-all outline-none" required /></div>
+              <div className="space-y-2"><label className="text-[12px] font-black text-slate-400 uppercase tracking-widest px-1">Protocol / Notes</label><textarea value={editingStudy.description} onChange={e => setEditingStudy({...editingStudy, description: e.target.value})} className="w-full px-6 py-5 bg-slate-50 rounded-[1.2rem] border border-slate-100 font-bold text-sm h-40 resize-none focus:ring-8 focus:ring-teal-500/5 transition-all outline-none italic" required /></div>
               <button type="submit" className="w-full bg-slate-900 text-white py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.4em] shadow-2xl active:scale-95 transition-all">Synchronize Protocol</button>
             </form>
           </div>
@@ -404,27 +406,27 @@ const App: React.FC = () => {
             <div className="flex justify-between items-center mb-10">
               <div className="flex items-center gap-3">
                 <UserCircle className="text-teal-600" size={28} />
-                <h2 className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-900 italic">Vault Correction</h2>
+                <h2 className="text-[13px] font-black uppercase tracking-[0.5em] text-slate-900 italic">Vault Correction</h2>
               </div>
               <button onClick={() => setPatientToEdit(null)} className="text-slate-400 hover:text-slate-900 transition-colors p-2"><X size={24} /></button>
             </div>
             <form onSubmit={(e) => { e.preventDefault(); if (patientToEdit) handleUpdatePatient(patientToEdit); }} className="space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">UHID</label>
+                  <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest">UHID</label>
                   <input value={patientToEdit.uhid} onChange={e => setPatientToEdit({...patientToEdit, uhid: e.target.value})} className="w-full px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 font-black text-sm font-mono outline-none" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lead Surgeon</label>
+                  <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest">Lead Surgeon</label>
                   <input value={patientToEdit.primarySurgeon} onChange={e => setPatientToEdit({...patientToEdit, primarySurgeon: e.target.value})} className="w-full px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 font-black text-sm outline-none" />
                 </div>
               </div>
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient Identity</label>
+                 <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest">Patient Identity</label>
                  <input value={patientToEdit.name} onChange={e => setPatientToEdit({...patientToEdit, name: e.target.value})} className="w-full px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 font-black text-sm uppercase tracking-tighter italic outline-none" />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Primary Diagnosis</label>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest">Primary Diagnosis</label>
                 <textarea 
                   value={patientToEdit.diagnosis} 
                   onChange={e => setPatientToEdit({...patientToEdit, diagnosis: e.target.value})} 
@@ -446,7 +448,7 @@ const App: React.FC = () => {
             </div>
             <div className="space-y-3">
               <h2 className="text-xs font-black text-slate-900 uppercase tracking-[0.5em] italic">Access Denied</h2>
-              <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest leading-relaxed">Identity verification required to modify clinical repository</p>
+              <p className="text-[12px] text-slate-400 uppercase font-bold tracking-widest leading-relaxed">Identity verification required to modify clinical repository</p>
             </div>
             <input 
               type="password" 
@@ -457,8 +459,8 @@ const App: React.FC = () => {
               autoFocus
             />
             <div className="flex gap-4">
-              <button onClick={() => setSecurityContext(null)} className="flex-1 text-[10px] font-black uppercase tracking-widest text-slate-400 py-4 hover:text-slate-900 transition-colors">Decline</button>
-              <button onClick={processSecurityAction} className="flex-1 bg-slate-900 text-white py-4 rounded-[1.2rem] text-[10px] font-black uppercase tracking-widest shadow-2xl active:scale-95">Authorize</button>
+              <button onClick={() => setSecurityContext(null)} className="flex-1 text-[12px] font-black uppercase tracking-widest text-slate-400 py-4 hover:text-slate-900 transition-colors">Decline</button>
+              <button onClick={processSecurityAction} className="flex-1 bg-slate-900 text-white py-4 rounded-[1.2rem] text-[12px] font-black uppercase tracking-widest shadow-2xl active:scale-95">Authorize</button>
             </div>
           </div>
         </div>

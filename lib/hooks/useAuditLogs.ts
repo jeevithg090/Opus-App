@@ -10,7 +10,7 @@ interface UseAuditLogsReturn {
   refetch: () => Promise<void>;
 }
 
-export function useAuditLogs(): UseAuditLogsReturn {
+export function useAuditLogs(authUserId: string | null): UseAuditLogsReturn {
   const [logs, setLogs] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,8 +26,8 @@ export function useAuditLogs(): UseAuditLogsReturn {
   }, []);
 
   useEffect(() => {
-    fetchLogs();
-  }, [fetchLogs]);
+    if (authUserId) fetchLogs();
+  }, [authUserId, fetchLogs]);
 
   const addEntry = async (userId: string, userName: string, action: string, targetId: string, details: string) => {
     await supabase.from('audit_entries').insert({
