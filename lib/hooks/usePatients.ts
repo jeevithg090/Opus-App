@@ -53,7 +53,7 @@ export function usePatients(): UsePatientsReturn {
       diagnosis: p.diagnosis,
       primary_surgeon: p.primarySurgeon,
       created_at: p.createdAt,
-      date_of_surgery: p.dateOfSurgery ?? null,
+      date_of_surgery: p.dateOfSurgery || null,
     });
     if (patientError) {
       console.error('Patient insert failed:', patientError);
