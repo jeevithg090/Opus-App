@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "test:deep": "node tests/deep-test.mjs"
+    "test:deep": "node tests/deep-test.mjs",
+    "test:sim": "node tests/simulate-fixes.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
