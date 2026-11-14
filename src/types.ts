@@ -1,20 +1,19 @@
-
 export enum SurgicalStage {
   PRE_OP = 'Pre-operative',
   INTRA_OP = 'Intra-operative',
-  POST_OP = 'Post-operative'
+  POST_OP = 'Post-operative',
 }
 
 export enum MediaType {
   IMAGE = 'image',
   VIDEO = 'video',
   AUDIO = 'audio',
-  PDF = 'pdf'
+  PDF = 'pdf',
 }
 
 export enum StorageLocation {
   GOOGLE_DRIVE = 'Google Drive',
-  LOCAL = 'Local Storage'
+  LOCAL = 'Local Storage',
 }
 
 export type Gender = 'Male' | 'Female' | 'Other' | 'Prefer not to say';
