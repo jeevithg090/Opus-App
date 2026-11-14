@@ -1,7 +1,0 @@
-{
-  "name": "OPUS - Operative Photo Unite and Storage",
-  "description": "A specialized clinical photography and research management tool for surgeons to track patient media across surgical stages and manage longitudinal study groups.",
-  "requestFramePermissions": [
-    "camera"
-  ]
-}
