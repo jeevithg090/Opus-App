@@ -1,24 +1,143 @@
 @import 'tailwindcss';
 
+/*
+ * Design system
+ * -------------
+ * Colours are semantic tokens so every screen switches between light and dark
+ * themes from one place. Text tokens meet WCAG AA (4.5:1) on `surface` and
+ * `canvas` in both themes; `ink-4` is for decorative icons only.
+ *
+ *   canvas      page background            ink     primary text
+ *   surface     cards, dialogs, inputs     ink-2   secondary text
+ *   surface-2   subtle fills, inputs       ink-3   muted text / labels
+ *   surface-3   pressed / sunken fills     ink-4   decorative icons
+ *   line        borders                    brand   actions (teal)
+ *   inverse     always-dark panels         danger  destructive actions
+ */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --color-primary: var(--color-teal-600);
-  --color-primary-hover: var(--color-teal-700);
-  --color-primary-light: var(--color-teal-50);
+  --color-canvas: #f6f8fa;
+  --color-surface: #ffffff;
+  --color-surface-2: #f8fafc;
+  --color-surface-3: #f1f5f9;
+  --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+
+  --color-ink: #0f172a;
+  --color-ink-2: #475569;
+  --color-ink-3: #5b6b80;
+  --color-ink-4: #94a3b8;
+
+  --color-brand: #0f766e;
+  --color-brand-hover: #115e59;
+  --color-brand-soft: #f0fdfa;
+  --color-brand-soft-2: #ccfbf1;
+  --color-brand-ink: #0f766e;
+  --color-brand-line: #99f6e4;
+  --color-brand-accent: #14b8a6;
+
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-soft: #fef2f2;
+  --color-danger-ink: #b91c1c;
+  --color-danger-line: #fecaca;
+
+  --color-warn-soft: #fffbeb;
+  --color-warn-ink: #b45309;
+  --color-warn-line: #fde68a;
+
+  --color-inverse: #0f172a;
+  --color-inverse-2: #1e293b;
 
   --text-xs: 0.8125rem;
   --text-sm: 0.9375rem;
 
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
-  --radius-3xl: 1.5rem;
+  --radius-3xl: 1.25rem;
+
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+  --shadow-raised: 0 4px 6px -1px rgb(15 23 42 / 0.06), 0 10px 24px -6px rgb(15 23 42 / 0.12);
+
+  --animate-fade-in: fade-in 180ms ease-out both;
+  --animate-rise-in: rise-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-canvas: #0b1120;
+  --color-surface: #111a2e;
+  --color-surface-2: #16213a;
+  --color-surface-3: #1e2a44;
+  --color-line: #263552;
+  --color-line-strong: #3a4a6b;
+
+  --color-ink: #f1f5f9;
+  --color-ink-2: #cbd5e1;
+  --color-ink-3: #9fb0c8;
+  --color-ink-4: #64748b;
+
+  --color-brand: #0f766e;
+  --color-brand-hover: #0d9488;
+  --color-brand-soft: rgb(20 184 166 / 0.12);
+  --color-brand-soft-2: rgb(20 184 166 / 0.22);
+  --color-brand-ink: #5eead4;
+  --color-brand-line: rgb(45 212 191 / 0.35);
+  --color-brand-accent: #2dd4bf;
+
+  --color-danger: #dc2626;
+  --color-danger-hover: #ef4444;
+  --color-danger-soft: rgb(239 68 68 / 0.12);
+  --color-danger-ink: #fca5a5;
+  --color-danger-line: rgb(248 113 113 / 0.35);
+
+  --color-warn-soft: rgb(245 158 11 / 0.12);
+  --color-warn-ink: #fcd34d;
+  --color-warn-line: rgb(251 191 36 / 0.35);
+
+  --color-inverse: #1a2540;
+  --color-inverse-2: #2a3858;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-raised: 0 10px 30px -8px rgb(0 0 0 / 0.6);
 }
 
 @layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-canvas text-ink antialiased;
+    font-feature-settings: 'cv11', 'ss01';
   }
 
   h1,
@@ -27,37 +146,107 @@
   h4,
   h5,
   h6 {
-    @apply tracking-tight font-semibold;
+    @apply font-semibold tracking-tight;
+  }
+
+  ::selection {
+    @apply bg-brand-soft-2;
+  }
+
+  /* One consistent, clearly visible keyboard focus ring everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-accent);
+    outline-offset: 2px;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-ink-3);
+    opacity: 0.85;
+  }
+
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  label[for],
+  select {
+    cursor: pointer;
   }
 }
 
-@layer components {
-  .btn-primary {
-    @apply bg-teal-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-teal-700 transition-colors active:scale-[0.98];
-  }
-
-  .card {
-    @apply bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden;
-  }
-
-  .input {
-    @apply w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all;
-  }
+/* Buttons — one shape, three emphasis levels plus danger. */
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-[background-color,border-color,color,box-shadow,transform] duration-150 select-none active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-brand text-white shadow-card hover:bg-brand-hover;
+}
+@utility btn-secondary {
+  @apply btn border border-line bg-surface text-ink-2 shadow-card hover:border-line-strong hover:text-ink;
+}
+@utility btn-ghost {
+  @apply btn text-ink-2 hover:bg-surface-3 hover:text-ink;
+}
+@utility btn-danger {
+  @apply btn bg-danger text-white shadow-card hover:bg-danger-hover;
+}
+@utility btn-icon {
+  @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line bg-surface text-ink-3 shadow-card transition-colors duration-150 hover:border-line-strong hover:text-ink active:scale-95 disabled:opacity-50;
 }
 
-/* Custom scrollbar */
+/* Form controls */
+@utility field {
+  @apply block min-h-11 w-full rounded-xl border border-line bg-surface-2 px-4 py-2.5 text-sm text-ink transition-[border-color,box-shadow] duration-150 outline-none focus:border-brand-accent focus:ring-4 focus:ring-brand-accent/15 disabled:opacity-60 aria-[invalid=true]:border-danger aria-[invalid=true]:ring-danger/15;
+}
+@utility field-label {
+  @apply mb-1.5 block text-xs font-semibold text-ink-2;
+}
+@utility field-hint {
+  @apply mt-1.5 text-xs text-ink-3;
+}
+@utility field-error {
+  @apply mt-1.5 text-xs font-medium text-danger-ink;
+}
+
+/* Surfaces */
+@utility card {
+  @apply rounded-2xl border border-line bg-surface shadow-card;
+}
+@utility eyebrow {
+  @apply flex items-center gap-2 text-xs font-semibold tracking-wide text-ink-3 uppercase;
+}
+@utility page-title {
+  @apply text-2xl font-bold text-ink md:text-3xl;
+}
+@utility page-subtitle {
+  @apply mt-1 text-sm text-ink-3;
+}
+@utility badge {
+  @apply inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold;
+}
+@utility badge-brand {
+  @apply badge border-brand-line bg-brand-soft text-brand-ink;
+}
+@utility alert-error {
+  @apply rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger-ink;
+}
+@utility alert-success {
+  @apply rounded-xl border border-brand-line bg-brand-soft px-4 py-3 text-sm font-medium text-brand-ink;
+}
+
+/* Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-200 rounded-full;
+  background: var(--color-line);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-300;
+  background: var(--color-line-strong);
 }
 
 .no-scrollbar::-webkit-scrollbar {

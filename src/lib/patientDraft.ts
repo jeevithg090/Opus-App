@@ -1,4 +1,4 @@
-import { createId } from './clinical';
+import { createId, todayIsoDate } from './clinical';
 import type { Gender, Patient, SurgeryEvent } from '../types';
 
 /** Raw values from the "new patient" form. */
@@ -41,4 +41,22 @@ export function draftToPatient(draft: PatientDraft, now: Date = new Date()): Pat
     dateOfSurgery: draft.dateOfSurgery || undefined,
     surgeries,
   };
+}
+
+export type PatientDraftErrors = Partial<Record<keyof PatientDraft, string>>;
+
+/** Friendly, field-level validation for the new-patient form. Returns an empty object when valid. */
+export function validatePatientDraft(draft: PatientDraft, today: string = todayIsoDate()) {
+  const errors: PatientDraftErrors = {};
+  if (!draft.uhid.trim()) errors.uhid = 'Enter the hospital ID (UHID) for this patient.';
+  else if (draft.uhid.trim().length > 64) errors.uhid = 'UHID must be 64 characters or fewer.';
+  if (!draft.name.trim()) errors.name = "Enter the patient's name.";
+  if (draft.ageYears !== '') {
+    const age = Number(draft.ageYears);
+    if (!Number.isFinite(age) || age < 0 || age > 130) errors.ageYears = 'Age must be between 0 and 130.';
+  }
+  if (draft.dateOfSurgery && draft.dateOfSurgery > today)
+    errors.dateOfSurgery = 'Surgery date cannot be in the future.';
+  if (!draft.diagnosis.trim()) errors.diagnosis = 'Add a short clinical diagnosis.';
+  return errors;
 }
