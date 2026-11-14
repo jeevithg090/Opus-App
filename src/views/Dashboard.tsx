@@ -1,16 +1,39 @@
 import React, { useMemo, useState } from 'react';
-import { Search, Plus, User, ChevronRight, FileText, Clock, Video, Music, Users } from 'lucide-react';
+import {
+  Search,
+  Plus,
+  ChevronRight,
+  FileText,
+  Clock,
+  Video,
+  Music,
+  Users,
+  Images,
+  Library,
+  Stethoscope,
+  UserPlus,
+} from 'lucide-react';
 import Modal from '../components/Modal';
+import EmptyState from '../components/EmptyState';
+import FormField from '../components/FormField';
 import { MediaType } from '../types';
 import type { Gender, MediaEntry, Patient, StudyGroup } from '../types';
 import {
   buildRecentActivity,
   errorMessage,
   matchesPatientSearch,
+  initials,
   patientPostOpDay,
   todayIsoDate,
 } from '../lib/clinical';
-import { GENDERS, draftToPatient, emptyPatientDraft, type PatientDraft } from '../lib/patientDraft';
+import {
+  GENDERS,
+  draftToPatient,
+  emptyPatientDraft,
+  validatePatientDraft,
+  type PatientDraft,
+  type PatientDraftErrors,
+} from '../lib/patientDraft';
 
 interface DashboardProps {
   patients: Patient[];
@@ -22,29 +45,42 @@ interface DashboardProps {
   onSelectPatient: (patient: Patient) => void;
 }
 
-const fieldClass =
-  'w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all';
-const labelClass = 'ml-1 text-xs font-semibold text-slate-600';
-
 const ActivityTile: React.FC<{ media: MediaEntry }> = ({ media }) => {
   if (media.type === MediaType.IMAGE) {
     return (
       <img
         src={media.url}
-        alt={`Clinical image for ${media.uhid}`}
+        alt=""
         loading="lazy"
-        className="h-full w-full object-cover"
+        decoding="async"
+        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
     );
   }
   const Icon = media.type === MediaType.VIDEO ? Video : media.type === MediaType.AUDIO ? Music : FileText;
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-slate-100 text-slate-500">
+    <span className="flex h-full w-full flex-col items-center justify-center gap-1.5 bg-surface-3 pb-10 text-ink-3">
       <Icon size={28} aria-hidden="true" />
-      <span className="text-[11px] font-bold uppercase">{media.type}</span>
-    </div>
+      <span className="text-[11px] font-bold uppercase tracking-wide">{media.type}</span>
+    </span>
   );
 };
+
+const StatTile: React.FC<{ label: string; value: number; icon: React.ElementType }> = ({
+  label,
+  value,
+  icon: Icon,
+}) => (
+  <div className="card flex items-center gap-3 p-3.5 sm:p-4">
+    <span className="hidden h-10 w-10 shrink-0 sm:flex items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
+      <Icon size={18} aria-hidden="true" />
+    </span>
+    <span className="min-w-0">
+      <span className="block text-xl font-bold leading-tight text-ink tabular-nums">{value}</span>
+      <span className="block text-xs font-medium text-ink-3">{label}</span>
+    </span>
+  </div>
+);
 
 const Dashboard: React.FC<DashboardProps> = ({
   patients,
@@ -59,19 +95,39 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [draft, setDraft] = useState<PatientDraft>(() => emptyPatientDraft(defaultSurgeon));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<PatientDraftErrors>({});
 
   const filtered = patients.filter((p) => matchesPatientSearch(p, searchTerm));
   const recentActivity = useMemo(() => buildRecentActivity(media, patients), [media, patients]);
   const groupNames = useMemo(() => new Map(studyGroups.map((g) => [g.id, g.name])), [studyGroups]);
+  const mediaCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const m of media) counts.set(m.uhid, (counts.get(m.uhid) ?? 0) + 1);
+    return counts;
+  }, [media]);
+  const procedureCount = patients.reduce((sum, p) => sum + p.surgeries.length, 0);
+
+  const updateDraft = (changes: Partial<PatientDraft>) => {
+    setDraft((prev) => ({ ...prev, ...changes }));
+    // Clear a field's error as soon as the user edits it.
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(changes) as (keyof PatientDraft)[]) delete next[key];
+      return next;
+    });
+  };
 
   const closeModal = () => {
     setShowModal(false);
     setFormError(null);
+    setFieldErrors({});
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!draft.uhid.trim() || !draft.name.trim()) return;
+    const errors = validatePatientDraft(draft);
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setIsSubmitting(true);
     setFormError(null);
     try {
@@ -86,76 +142,82 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 pb-32 duration-500 md:space-y-8 lg:pb-12">
-      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+    <div className="mx-auto max-w-6xl space-y-6 pb-32 md:space-y-8 lg:pb-12">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Patient Registry</h1>
-          <p className="mt-1 text-xs text-slate-500 md:text-sm">Manage clinical records and surgical media</p>
+          <h1 className="page-title">Patient Registry</h1>
+          <p className="page-subtitle">Manage clinical records and surgical media.</p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowModal(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-5 py-3 text-sm font-medium text-white shadow-sm transition-all hover:bg-teal-700 active:scale-95 sm:w-auto"
-        >
+        <button type="button" onClick={() => setShowModal(true)} className="btn-primary w-full sm:w-auto">
           <Plus size={18} aria-hidden="true" />
           <span>Add Patient</span>
         </button>
       </div>
 
+      {patients.length > 0 && (
+        <section aria-label="Summary" className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+          <StatTile label="Active patients" value={patients.length} icon={Users} />
+          <StatTile label="Procedures" value={procedureCount} icon={Stethoscope} />
+          <StatTile label="Media assets" value={media.length} icon={Images} />
+          <StatTile label="Study groups" value={studyGroups.length} icon={Library} />
+        </section>
+      )}
+
       <div className="group relative">
         <Search
           size={18}
           aria-hidden="true"
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-teal-600"
+          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-4 transition-colors group-focus-within:text-brand-ink"
         />
         <input
           type="search"
           aria-label="Search patients by name or UHID"
-          placeholder="Search by name or UHID..."
-          className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm outline-none transition-all focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10"
+          placeholder="Search by name or UHID…"
+          className="field bg-surface pl-11 shadow-card"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      {recentActivity.length > 0 && (
-        <section aria-labelledby="recent-activity" className="space-y-3 md:space-y-4">
-          <h2
-            id="recent-activity"
-            className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-slate-500 md:text-xs"
-          >
-            <Clock size={12} aria-hidden="true" /> Recent Activity
+      {recentActivity.length > 0 && !searchTerm && (
+        <section aria-labelledby="recent-activity" className="space-y-3">
+          <h2 id="recent-activity" className="eyebrow">
+            <Clock size={14} aria-hidden="true" /> Recent activity
           </h2>
-          <ul className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 md:gap-4">
+          <ul className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
             {recentActivity.map((entry) => {
               const patient =
                 entry.kind === 'media'
                   ? patients.find((p) => p.uhid === entry.media.uhid)
                   : patients.find((p) => p.uhid === entry.uhid);
+              const label =
+                entry.kind === 'media'
+                  ? `${entry.media.type} for ${patient?.name ?? entry.media.uhid}, ${entry.media.stage}`
+                  : `Notes for ${entry.patientName}`;
               return (
-                <li key={entry.id} className="flex-shrink-0">
+                <li key={entry.id} className="shrink-0 snap-start">
                   <button
                     type="button"
                     disabled={!patient}
                     onClick={() => patient && onSelectPatient(patient)}
-                    className="relative h-32 w-32 overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-sm transition-all hover:border-teal-200 md:h-40 md:w-40"
+                    aria-label={label}
+                    className="group relative block h-32 w-32 overflow-hidden rounded-2xl border border-line bg-surface text-left shadow-card transition-[border-color,box-shadow] hover:border-brand-line hover:shadow-raised md:h-36 md:w-36"
                   >
                     {entry.kind === 'media' ? (
                       <>
                         <ActivityTile media={entry.media} />
-                        <span className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 via-transparent to-transparent p-3">
-                          <span className="truncate font-mono text-[12px] font-medium text-white">
-                            {entry.media.uhid}
-                          </span>
+                        <span className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/10 to-transparent p-3">
+                          <span className="truncate font-mono text-xs font-medium text-white">{entry.media.uhid}</span>
+                          <span className="truncate text-[11px] text-white/80">{entry.media.stage}</span>
                         </span>
                       </>
                     ) : (
-                      <span className="flex h-full w-full flex-col justify-between bg-slate-50 p-4">
-                        <FileText size={16} className="text-teal-600" aria-hidden="true" />
-                        <span className="line-clamp-4 text-[13px] italic leading-relaxed text-slate-600">
+                      <span className="flex h-full w-full flex-col justify-between bg-surface-2 p-3.5">
+                        <FileText size={16} className="text-brand-ink" aria-hidden="true" />
+                        <span className="line-clamp-3 text-xs italic leading-relaxed text-ink-2">
                           &ldquo;{entry.notes}&rdquo;
                         </span>
-                        <span className="truncate text-[12px] font-semibold uppercase tracking-tight text-slate-500">
+                        <span className="truncate text-[11px] font-semibold uppercase tracking-wide text-ink-3">
                           {entry.patientName}
                         </span>
                       </span>
@@ -168,175 +230,244 @@ const Dashboard: React.FC<DashboardProps> = ({
         </section>
       )}
 
-      {filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-100 bg-white py-20 text-center">
-          <Users size={36} className="text-slate-200" aria-hidden="true" />
-          <p className="text-sm font-bold text-slate-500">
-            {patients.length === 0 ? 'No patients registered yet' : 'No patients match your search'}
-          </p>
-          {patients.length === 0 && (
-            <p className="text-xs text-slate-400">Use “Add Patient” to create the first record.</p>
+      <section aria-labelledby="patients-heading" className="space-y-3">
+        <div className="flex items-baseline justify-between">
+          <h2 id="patients-heading" className="eyebrow">
+            <Users size={14} aria-hidden="true" /> Patients
+          </h2>
+          {patients.length > 0 && (
+            <p className="text-xs text-ink-3" aria-live="polite">
+              {searchTerm ? `${filtered.length} of ${patients.length} shown` : `${patients.length} total`}
+            </p>
           )}
         </div>
-      ) : (
-        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
-          {filtered.map((p) => {
-            const pod = patientPostOpDay(p);
-            return (
-              <li key={p.uhid}>
-                <button
-                  type="button"
-                  onClick={() => onSelectPatient(p)}
-                  className="group flex h-full w-full flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition-all hover:border-teal-100 hover:shadow-md md:gap-4 md:p-6"
-                >
-                  <span className="flex items-start justify-between">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition-colors group-hover:bg-teal-50 group-hover:text-teal-600">
-                      <User size={24} aria-hidden="true" />
-                    </span>
-                    {pod !== null && (
-                      <span
-                        className="rounded-full border border-teal-100 bg-teal-50 px-2 py-1 text-[12px] font-bold text-teal-700"
-                        title="Post-operative day"
-                      >
-                        POD {pod}
-                      </span>
-                    )}
-                  </span>
-                  <span>
-                    <span className="block text-lg font-bold leading-tight text-slate-900">{p.name}</span>
-                    <span className="mt-1 block font-mono text-[13px] text-slate-500">{p.uhid}</span>
-                  </span>
-                  <span className="rounded-xl bg-slate-50 p-3">
-                    <span className="line-clamp-2 text-xs leading-relaxed text-slate-600">
-                      {p.diagnosis || 'No diagnosis recorded'}
-                    </span>
-                  </span>
-                  <span className="mt-auto flex items-center justify-between pt-2">
-                    <span className="flex -space-x-2">
-                      {p.studyGroupIds.slice(0, 3).map((id) => {
-                        const name = groupNames.get(id) ?? 'Study group';
-                        return (
-                          <span
-                            key={id}
-                            title={name}
-                            className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-teal-100 text-[10px] font-bold uppercase text-teal-700"
-                          >
-                            {name.charAt(0)}
+        {filtered.length === 0 ? (
+          <div className="card">
+            {patients.length === 0 ? (
+              <EmptyState
+                icon={UserPlus}
+                title="No patients registered yet"
+                description="Add your first patient to start recording surgical media and notes."
+                action={
+                  <button type="button" onClick={() => setShowModal(true)} className="btn-primary">
+                    <Plus size={18} aria-hidden="true" /> Add Patient
+                  </button>
+                }
+              />
+            ) : (
+              <EmptyState
+                icon={Search}
+                title="No patients match your search"
+                description={`Nothing found for “${searchTerm.trim()}”. Try a different name or UHID.`}
+                action={
+                  <button type="button" onClick={() => setSearchTerm('')} className="btn-secondary">
+                    Clear search
+                  </button>
+                }
+              />
+            )}
+          </div>
+        ) : (
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((p) => {
+              const pod = patientPostOpDay(p);
+              const assets = mediaCounts.get(p.uhid) ?? 0;
+              return (
+                <li key={p.uhid}>
+                  <button
+                    type="button"
+                    onClick={() => onSelectPatient(p)}
+                    className="card group flex h-full w-full flex-col gap-4 p-5 text-left transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-brand-line hover:shadow-raised"
+                  >
+                    <span className="flex items-start justify-between gap-3">
+                      <span className="flex min-w-0 items-center gap-3">
+                        <span
+                          aria-hidden="true"
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-3 text-base font-bold text-ink-2 transition-colors group-hover:bg-brand-soft group-hover:text-brand-ink"
+                        >
+                          {initials(p.name)}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-base font-semibold leading-tight text-ink">
+                            {p.name}
                           </span>
-                        );
-                      })}
-                      {p.studyGroupIds.length > 3 && (
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-[10px] font-bold text-slate-500">
-                          +{p.studyGroupIds.length - 3}
+                          <span className="mt-0.5 block font-mono text-xs text-ink-3">{p.uhid}</span>
+                        </span>
+                      </span>
+                      {pod !== null && (
+                        <span className="badge-brand shrink-0" title="Post-operative day">
+                          POD {pod}
                         </span>
                       )}
                     </span>
-                    <ChevronRight
-                      size={16}
-                      className="text-slate-300 transition-colors group-hover:text-teal-500"
-                      aria-hidden="true"
-                    />
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                    <span className="line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed text-ink-2">
+                      {p.diagnosis || 'No diagnosis recorded'}
+                    </span>
+                    <span className="mt-auto flex items-center justify-between gap-3 border-t border-line pt-3 text-xs text-ink-3">
+                      <span className="flex items-center gap-3">
+                        <span className="flex items-center gap-1">
+                          <Images size={14} aria-hidden="true" />
+                          {assets} asset{assets === 1 ? '' : 's'}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Stethoscope size={14} aria-hidden="true" />
+                          {p.surgeries.length} procedure{p.surgeries.length === 1 ? '' : 's'}
+                        </span>
+                      </span>
+                      <span className="flex items-center gap-2">
+                        {p.studyGroupIds.length > 0 && (
+                          <span className="flex -space-x-1.5">
+                            {p.studyGroupIds.slice(0, 3).map((id) => {
+                              const name = groupNames.get(id) ?? 'Study group';
+                              return (
+                                <span
+                                  key={id}
+                                  title={name}
+                                  className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-surface bg-brand-soft-2 text-[10px] font-bold uppercase text-brand-ink"
+                                >
+                                  {name.charAt(0)}
+                                  <span className="sr-only">Study group: {name}</span>
+                                </span>
+                              );
+                            })}
+                            {p.studyGroupIds.length > 3 && (
+                              <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-surface bg-surface-3 text-[10px] font-bold text-ink-3">
+                                +{p.studyGroupIds.length - 3}
+                              </span>
+                            )}
+                          </span>
+                        )}
+                        <ChevronRight
+                          size={16}
+                          className="text-ink-4 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-ink"
+                          aria-hidden="true"
+                        />
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
       {showModal && (
-        <Modal title="New Patient Enrollment" onClose={closeModal} busy={isSubmitting}>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <label className="block space-y-1.5">
-              <span className={labelClass}>UHID Identifier</span>
-              <input
-                required
-                placeholder="e.g. HOSP-2025-001"
-                className={`${fieldClass} font-mono`}
-                value={draft.uhid}
-                onChange={(e) => setDraft({ ...draft, uhid: e.target.value })}
-              />
-            </label>
-            <label className="block space-y-1.5">
-              <span className={labelClass}>Patient Name</span>
-              <input
-                required
-                placeholder="Full legal name"
-                className={fieldClass}
-                value={draft.name}
-                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              />
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block space-y-1.5">
-                <span className={labelClass}>Age (years)</span>
+        <Modal
+          title="New patient"
+          description="Register a patient in your registry."
+          onClose={closeModal}
+          busy={isSubmitting}
+        >
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            <FormField label="UHID" required error={fieldErrors.uhid} hint="Hospital ID. Cannot be changed later.">
+              {(a) => (
                 <input
-                  type="number"
-                  min={0}
-                  max={130}
-                  inputMode="numeric"
-                  className={fieldClass}
-                  value={draft.ageYears}
-                  onChange={(e) => setDraft({ ...draft, ageYears: e.target.value })}
+                  {...a}
+                  autoComplete="off"
+                  placeholder="e.g. HOSP-2025-001"
+                  className="field font-mono"
+                  value={draft.uhid}
+                  onChange={(e) => updateDraft({ uhid: e.target.value })}
                 />
-              </label>
-              <label className="block space-y-1.5">
-                <span className={labelClass}>Gender</span>
-                <select
-                  className={fieldClass}
-                  value={draft.gender}
-                  onChange={(e) => setDraft({ ...draft, gender: e.target.value as Gender })}
-                >
-                  {GENDERS.map((g) => (
-                    <option key={g} value={g}>
-                      {g}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              )}
+            </FormField>
+            <FormField label="Patient Name" required error={fieldErrors.name}>
+              {(a) => (
+                <input
+                  {...a}
+                  autoComplete="off"
+                  placeholder="Full name"
+                  className="field"
+                  value={draft.name}
+                  onChange={(e) => updateDraft({ name: e.target.value })}
+                />
+              )}
+            </FormField>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Age (years)" error={fieldErrors.ageYears}>
+                {(a) => (
+                  <input
+                    {...a}
+                    type="number"
+                    min={0}
+                    max={130}
+                    inputMode="numeric"
+                    className="field"
+                    value={draft.ageYears}
+                    onChange={(e) => updateDraft({ ageYears: e.target.value })}
+                  />
+                )}
+              </FormField>
+              <FormField label="Gender">
+                {(a) => (
+                  <select
+                    {...a}
+                    className="field"
+                    value={draft.gender}
+                    onChange={(e) => updateDraft({ gender: e.target.value as Gender })}
+                  >
+                    {GENDERS.map((g) => (
+                      <option key={g} value={g}>
+                        {g}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </FormField>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="block space-y-1.5">
-                <span className={labelClass}>Lead Surgeon</span>
-                <input
-                  className={fieldClass}
-                  value={draft.primarySurgeon}
-                  onChange={(e) => setDraft({ ...draft, primarySurgeon: e.target.value })}
-                />
-              </label>
-              <label className="block space-y-1.5">
-                <span className={labelClass}>Date of Surgery (optional)</span>
-                <input
-                  type="date"
-                  max={todayIsoDate()}
-                  className={fieldClass}
-                  value={draft.dateOfSurgery}
-                  onChange={(e) => setDraft({ ...draft, dateOfSurgery: e.target.value })}
-                />
-              </label>
+              <FormField label="Lead Surgeon">
+                {(a) => (
+                  <input
+                    {...a}
+                    className="field"
+                    value={draft.primarySurgeon}
+                    onChange={(e) => updateDraft({ primarySurgeon: e.target.value })}
+                  />
+                )}
+              </FormField>
+              <FormField
+                label="Date of Surgery"
+                error={fieldErrors.dateOfSurgery}
+                hint="Optional. Creates a Primary Surgery."
+              >
+                {(a) => (
+                  <input
+                    {...a}
+                    type="date"
+                    max={todayIsoDate()}
+                    className="field"
+                    value={draft.dateOfSurgery}
+                    onChange={(e) => updateDraft({ dateOfSurgery: e.target.value })}
+                  />
+                )}
+              </FormField>
             </div>
-            <label className="block space-y-1.5">
-              <span className={labelClass}>Clinical Diagnosis</span>
-              <textarea
-                required
-                placeholder="Brief clinical findings..."
-                className={`${fieldClass} h-24 resize-none md:h-28`}
-                value={draft.diagnosis}
-                onChange={(e) => setDraft({ ...draft, diagnosis: e.target.value })}
-              />
-            </label>
+            <FormField label="Clinical Diagnosis" required error={fieldErrors.diagnosis}>
+              {(a) => (
+                <textarea
+                  {...a}
+                  placeholder="Brief clinical findings…"
+                  className="field h-24 resize-none"
+                  value={draft.diagnosis}
+                  onChange={(e) => updateDraft({ diagnosis: e.target.value })}
+                />
+              )}
+            </FormField>
             {formError && (
-              <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-600">
+              <p role="alert" className="alert-error">
                 {formError}
               </p>
             )}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full rounded-xl bg-teal-600 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-teal-700 active:scale-[0.98] disabled:opacity-50 md:py-4"
-            >
-              {isSubmitting ? 'Adding…' : 'Complete Enrollment'}
-            </button>
+            <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+              <button type="button" onClick={closeModal} disabled={isSubmitting} className="btn-secondary">
+                Cancel
+              </button>
+              <button type="submit" disabled={isSubmitting} className="btn-primary">
+                {isSubmitting ? 'Adding…' : 'Complete Enrollment'}
+              </button>
+            </div>
           </form>
         </Modal>
       )}

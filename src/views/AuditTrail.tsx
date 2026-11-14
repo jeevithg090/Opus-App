@@ -1,5 +1,6 @@
 import React from 'react';
-import { ShieldAlert, Clock, User, Search, ArrowLeft, Shield } from 'lucide-react';
+import { ShieldCheck, Clock, Search, ArrowLeft, ScrollText } from 'lucide-react';
+import EmptyState from '../components/EmptyState';
 import type { AuditEntry } from '../types';
 import { filterAuditLogs } from '../lib/clinical';
 
@@ -9,173 +10,143 @@ interface AuditTrailProps {
   onBack?: () => void;
 }
 
+const formatTime = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+
 const AuditTrail: React.FC<AuditTrailProps> = ({ logs, error, onBack }) => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const filteredLogs = React.useMemo(() => filterAuditLogs(logs, searchTerm), [logs, searchTerm]);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 duration-500 pb-32 lg:pb-10">
-      <div className="space-y-4">
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-xs font-bold text-teal-600 hover:text-slate-900 transition-colors group py-2"
-          >
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Workspace
-          </button>
-        )}
-        <div className="flex justify-between items-end">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Audit Trail</h1>
-            <p className="text-slate-500 text-sm mt-1">Immutable record of all clinical data interactions.</p>
-          </div>
-          <div className="hidden md:flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-widest">
-            <Shield size={14} className="text-teal-500" aria-hidden="true" />
-            Append-only log
-          </div>
+    <div className="mx-auto max-w-6xl space-y-6 pb-32 lg:pb-12">
+      {onBack && (
+        <button type="button" onClick={onBack} className="btn-ghost -ml-2 px-2 text-ink-2 lg:hidden">
+          <ArrowLeft size={18} aria-hidden="true" /> Back to registry
+        </button>
+      )}
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <h1 className="page-title">Audit Trail</h1>
+          <p className="page-subtitle">Append-only record of every change to clinical data.</p>
         </div>
+        <span className="badge-brand">
+          <ShieldCheck size={12} aria-hidden="true" /> Append-only log
+        </span>
       </div>
 
       {error && (
-        <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <p role="alert" className="alert-error">
           Audit log could not be loaded: {error}
         </p>
       )}
 
-      <div className="relative group">
-        <Search
-          aria-hidden="true"
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-600 transition-colors"
-          size={18}
-        />
-        <input
-          type="text"
-          placeholder="Filter clinical audit logs..."
-          className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all text-sm font-medium shadow-sm"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      {/* Mobile-optimized Card List */}
-      <div className="block md:hidden space-y-4">
-        {filteredLogs.length > 0 ? (
-          filteredLogs.map((log) => (
-            <div key={log.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-400">
-                    <User size={14} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">{log.userName}</p>
-                    <p className="text-[12px] font-mono text-slate-400">{log.userId.slice(-8)}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-[12px] font-bold text-slate-400 flex items-center gap-1 justify-end">
-                    <Clock size={12} className="text-teal-600" />
-                    {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                  <p className="text-[12px] text-slate-400">
-                    {new Date(log.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-1 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-[12px] font-bold text-teal-600 uppercase tracking-tight">{log.action}</p>
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">{log.details}</p>
-              </div>
-              <div className="flex justify-between items-center px-1">
-                <span className="text-[12px] font-mono font-bold text-slate-400 bg-white px-2 py-0.5 rounded border border-slate-200">
-                  ID: {log.targetId}
-                </span>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="py-20 text-center space-y-4 bg-white rounded-2xl border border-slate-100">
-            <ShieldAlert size={32} className="mx-auto text-slate-200" />
-            <p className="text-sm font-bold text-slate-400">Registry Empty</p>
-          </div>
-        )}
-      </div>
-
-      {/* Desktop Table */}
-      <div className="hidden md:block bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest">
-                  User Identity
-                </th>
-                <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest">
-                  Clinical Action
-                </th>
-                <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest">
-                  Target Context
-                </th>
-                <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest text-right">
-                  Timestamp
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredLogs.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-8 py-16 text-center text-sm font-bold text-slate-400">
-                    {logs.length === 0 ? 'No audit entries yet' : 'No entries match your filter'}
-                  </td>
-                </tr>
-              )}
-              {filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-50/50 transition-colors group">
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-teal-600 group-hover:border-teal-100 transition-colors">
-                        <User size={14} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900 leading-none">{log.userName}</p>
-                        <p className="text-[12px] font-mono text-slate-400 mt-1">{log.userId.slice(-8)}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="space-y-1">
-                      <p className="text-[12px] font-bold text-teal-600 uppercase tracking-tight">{log.action}</p>
-                      <p className="text-xs text-slate-500 leading-tight font-medium max-w-xs truncate">
-                        {log.details}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <span className="text-[12px] font-mono font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">
-                      {log.targetId}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5 text-right">
-                    <div className="flex flex-col items-end gap-1">
-                      <div className="flex items-center gap-1.5 text-[12px] font-bold text-slate-400">
-                        <Clock size={12} className="text-teal-600" />
-                        {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                      <p className="text-[12px] text-slate-400">
-                        {new Date(log.timestamp).toLocaleDateString([], {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {logs.length > 0 && (
+        <div className="group relative">
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-4 transition-colors group-focus-within:text-brand-ink"
+            size={18}
+          />
+          <input
+            type="search"
+            aria-label="Filter audit log"
+            placeholder="Filter by user, action, record or details…"
+            className="field bg-surface pl-11 shadow-card"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-      </div>
+      )}
+
+      {filteredLogs.length === 0 ? (
+        <div className="card">
+          {logs.length === 0 ? (
+            <EmptyState
+              icon={ScrollText}
+              title="No audit entries yet"
+              description="Actions such as registering patients, uploads and archiving will appear here."
+            />
+          ) : (
+            <EmptyState icon={Search} title="No entries match your filter" />
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Phones: timeline cards */}
+          <ul className="space-y-3 md:hidden">
+            {filteredLogs.map((log) => (
+              <li key={log.id} className="card space-y-2 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-ink">{log.action}</p>
+                  <time dateTime={log.timestamp} className="shrink-0 text-right text-xs text-ink-3">
+                    {formatDate(log.timestamp)} · {formatTime(log.timestamp)}
+                  </time>
+                </div>
+                <p className="text-sm leading-relaxed text-ink-2">{log.details}</p>
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-ink-3">
+                  <span className="font-medium text-ink-2">{log.userName}</span>
+                  <span aria-hidden="true">·</span>
+                  <span className="rounded border border-line bg-surface-2 px-1.5 py-0.5 font-mono">
+                    {log.targetId}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tablet and up: table */}
+          <div className="card hidden overflow-hidden md:block">
+            <table className="w-full border-collapse text-left">
+              <caption className="sr-only">Audit log entries, newest first</caption>
+              <thead>
+                <tr className="border-b border-line bg-surface-2">
+                  <th scope="col" className="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-ink-3">
+                    Action
+                  </th>
+                  <th scope="col" className="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-ink-3">
+                    Record
+                  </th>
+                  <th scope="col" className="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-ink-3">
+                    User
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-ink-3"
+                  >
+                    When
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {filteredLogs.map((log) => (
+                  <tr key={log.id} className="align-top transition-colors hover:bg-surface-2">
+                    <td className="px-5 py-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-brand-ink">{log.action}</p>
+                      <p className="mt-1 max-w-md text-sm text-ink-2">{log.details}</p>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="whitespace-nowrap rounded-md border border-line bg-surface-2 px-2 py-1 font-mono text-xs text-ink-2">
+                        {log.targetId}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-sm font-medium text-ink">{log.userName}</td>
+                    <td className="whitespace-nowrap px-5 py-4 text-right">
+                      <time dateTime={log.timestamp} className="flex flex-col items-end gap-0.5">
+                        <span className="flex items-center gap-1.5 text-sm font-medium text-ink-2">
+                          <Clock size={13} className="text-ink-4" aria-hidden="true" />
+                          {formatTime(log.timestamp)}
+                        </span>
+                        <span className="text-xs text-ink-3">{formatDate(log.timestamp)}</span>
+                      </time>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </div>
   );
 };
