@@ -11,9 +11,10 @@ export const OpusLogo: React.FC<{ size?: keyof typeof SIZES; className?: string 
   className = '',
 }) => (
   <div
-    className={`flex select-none items-center gap-2 rounded-xl border-b-4 border-teal-800 bg-teal-600 font-black italic tracking-tighter text-white shadow-lg ${SIZES[size]} ${className}`}
+    role="img"
     aria-label="OPUS"
+    className={`inline-flex select-none items-center rounded-xl border-b-4 border-brand-hover bg-brand font-black italic leading-none tracking-tighter text-white shadow-card ${SIZES[size]} ${className}`}
   >
-    OPUS
+    <span aria-hidden="true">OPUS</span>
   </div>
 );

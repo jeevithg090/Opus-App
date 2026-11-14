@@ -1,12 +1,19 @@
 import React from 'react';
 
-const Spinner: React.FC<{ label?: string; className?: string }> = ({ label = 'Loading', className = '' }) => (
-  <div role="status" aria-live="polite" className={`flex items-center justify-center ${className}`}>
+interface SpinnerProps {
+  label?: string;
+  /** Shows the label under the spinner instead of only announcing it to screen readers. */
+  showLabel?: boolean;
+  className?: string;
+}
+
+const Spinner: React.FC<SpinnerProps> = ({ label = 'Loading', showLabel = false, className = '' }) => (
+  <div role="status" aria-live="polite" className={`flex flex-col items-center justify-center gap-3 ${className}`}>
     <div
-      className="h-8 w-8 animate-spin rounded-full border-4 border-teal-600/20 border-t-teal-600"
+      className="h-8 w-8 animate-spin rounded-full border-[3px] border-brand-accent/20 border-t-brand-accent"
       aria-hidden="true"
     />
-    <span className="sr-only">{label}</span>
+    <span className={showLabel ? 'text-sm font-medium text-ink-3' : 'sr-only'}>{label}</span>
   </div>
 );
 
