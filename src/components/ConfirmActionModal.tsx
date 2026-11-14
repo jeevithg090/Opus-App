@@ -67,49 +67,46 @@ const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({ action, patient
       onClose={onClose}
       busy={busy}
       size="sm"
-      icon={<Icon size={22} aria-hidden="true" className={copy.danger ? 'text-red-500' : 'text-teal-600'} />}
+      icon={
+        <span
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${copy.danger ? 'bg-danger-soft text-danger-ink' : 'bg-brand-soft text-brand-ink'}`}
+        >
+          <Icon size={20} aria-hidden="true" />
+        </span>
+      }
     >
-      <form onSubmit={handleConfirm} className="space-y-6">
-        <div className="space-y-2 text-sm leading-relaxed text-slate-600">
-          <p>
-            <span className="font-bold text-slate-900">{patient.name}</span>{' '}
-            <span className="font-mono text-xs text-slate-500">({patient.uhid})</span>
+      <form onSubmit={handleConfirm} className="space-y-5">
+        <div className="space-y-3 text-sm leading-relaxed text-ink-2">
+          <p className="rounded-xl border border-line bg-surface-2 px-3 py-2">
+            <span className="font-semibold text-ink">{patient.name}</span>{' '}
+            <span className="font-mono text-xs text-ink-3">{patient.uhid}</span>
           </p>
           <p>{copy.body}</p>
         </div>
         {requiresTyping && (
-          <label className="block space-y-2">
-            <span className="text-xs font-bold text-slate-600">
-              Type <span className="font-mono text-slate-900">{patient.uhid}</span> to confirm
+          <label className="block">
+            <span className="field-label">
+              Type <span className="font-mono text-ink">{patient.uhid}</span> to confirm
             </span>
             <input
               value={typed}
               onChange={(e) => setTyped(e.target.value)}
               autoComplete="off"
               spellCheck={false}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-sm outline-none focus:border-red-400 focus:ring-4 focus:ring-red-500/10"
+              className="field font-mono focus:border-danger focus:ring-danger/15"
             />
           </label>
         )}
         {error && (
-          <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-600">
+          <p role="alert" className="alert-error">
             {error}
           </p>
         )}
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            className="flex-1 rounded-xl py-3 text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:text-slate-900"
-          >
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button type="button" onClick={onClose} disabled={busy} className="btn-secondary">
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={!canConfirm || busy}
-            className={`flex-1 rounded-xl py-3 text-xs font-bold uppercase tracking-widest text-white shadow-lg transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 ${copy.danger ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-900 hover:bg-slate-800'}`}
-          >
+          <button type="submit" disabled={!canConfirm || busy} className={copy.danger ? 'btn-danger' : 'btn-primary'}>
             {busy ? 'Working…' : copy.confirm}
           </button>
         </div>

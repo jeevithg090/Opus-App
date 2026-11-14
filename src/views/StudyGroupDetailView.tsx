@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, UserPlus, Search, Edit3, UserMinus, ShieldCheck, Library } from 'lucide-react';
+import { ArrowLeft, Plus, UserPlus, Search, Edit3, UserMinus, ShieldCheck, Library, Users } from 'lucide-react';
+import EmptyState from '../components/EmptyState';
 import Modal from '../components/Modal';
 import type { StudyGroup, Patient } from '../types';
-import { errorMessage, matchesPatientSearch } from '../lib/clinical';
+import { errorMessage, initials, matchesPatientSearch } from '../lib/clinical';
 
 interface StudyGroupDetailViewProps {
   group: StudyGroup;
@@ -45,241 +46,258 @@ const StudyGroupDetailView: React.FC<StudyGroupDetailViewProps> = ({
   };
   const unenroll = (p: Patient) => run(p.uhid, () => onUnenroll(p.uhid), 'Failed to remove patient from group.');
 
+  const iconBtn =
+    'flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-surface text-ink-3 shadow-card transition-colors disabled:opacity-50';
+
   return (
-    <div className="max-w-6xl mx-auto space-y-8 duration-700 pb-32 lg:pb-12">
-      {/* Action Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <button
-          onClick={onBack}
-          className="text-xs font-bold text-teal-600 hover:text-slate-900 transition-colors flex items-center gap-2 group py-1"
-        >
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Study Groups
+    <div className="mx-auto max-w-6xl space-y-6 pb-32 lg:pb-12">
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <button type="button" onClick={onBack} className="btn-ghost -ml-2 px-2 text-ink-2">
+          <ArrowLeft size={18} aria-hidden="true" /> Study Groups
         </button>
         <button
+          type="button"
           onClick={() => {
             setIsAdding(true);
             setActionError(null);
           }}
-          className="w-full sm:w-auto bg-slate-900 text-white px-6 py-3.5 rounded-xl text-sm font-bold shadow-lg flex items-center justify-center gap-2 hover:bg-slate-800 active:scale-95 transition-all"
+          className="btn-primary w-full sm:w-auto"
         >
-          <UserPlus size={18} /> Enroll Patient
+          <UserPlus size={18} aria-hidden="true" /> Enroll Patient
         </button>
       </div>
 
       {actionError && !isAdding && (
-        <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-2xl text-xs font-bold text-red-600">
+        <div role="alert" className="alert-error">
           {actionError}
         </div>
       )}
 
-      {/* Cohort Identity Card */}
-      <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-6">
-          <div className="space-y-3 flex-1">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl border border-teal-100">
-                <ShieldCheck size={24} />
-              </div>
-              <h1 className="text-3xl font-bold text-slate-900">{group.name}</h1>
-            </div>
-            <p className="text-slate-500 text-sm leading-relaxed max-w-3xl font-medium">{group.description}</p>
+      <section className="card flex flex-col gap-5 p-5 sm:flex-row sm:items-start sm:justify-between md:p-6">
+        <div className="flex min-w-0 flex-1 items-start gap-4">
+          <div className="shrink-0 rounded-xl bg-brand-soft p-3 text-brand-ink">
+            <ShieldCheck size={22} aria-hidden="true" />
           </div>
-          <div className="text-left sm:text-right bg-slate-50 sm:bg-transparent p-5 sm:p-0 rounded-2xl w-full sm:w-auto flex flex-row sm:flex-col justify-between items-center sm:items-end border border-slate-100 sm:border-none">
-            <span className="text-4xl font-bold text-teal-600 leading-none">{enrolledPatients.length}</span>
-            <span className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-              Enrolled Patients
-            </span>
+          <div className="min-w-0 space-y-1.5">
+            <h1 className="text-xl font-bold text-ink md:text-2xl">{group.name}</h1>
+            <p className="max-w-3xl text-sm leading-relaxed text-ink-2">{group.description}</p>
           </div>
         </div>
-      </div>
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface-2 px-4 py-3 sm:flex-col sm:items-end sm:border-0 sm:bg-transparent sm:p-0">
+          <span className="text-xs font-medium text-ink-3 sm:order-2">Enrolled patients</span>
+          <span className="text-3xl font-bold leading-none text-brand-ink tabular-nums">{enrolledPatients.length}</span>
+        </div>
+      </section>
 
-      {/* Search Bar */}
-      <div className="relative max-w-2xl mx-auto group">
-        <Search
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-600 transition-colors"
-          size={18}
-        />
-        <input
-          type="text"
-          placeholder="Filter cohort members..."
-          className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all text-sm font-medium shadow-sm"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+      {enrolledPatients.length > 0 && (
+        <div className="group relative">
+          <Search
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-4 transition-colors group-focus-within:text-brand-ink"
+            size={18}
+            aria-hidden="true"
+          />
+          <input
+            type="search"
+            aria-label="Filter group members by name or UHID"
+            placeholder="Filter members by name or UHID…"
+            className="field bg-surface pl-11 shadow-card"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      )}
 
-      {/* Mobile-Native Member List (Card Stack) */}
-      <div className="block md:hidden space-y-4">
-        {filteredEnrolled.length > 0 ? (
-          filteredEnrolled.map((p) => (
-            <div
-              key={p.uhid}
-              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 duration-300"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-slate-900 text-teal-400 rounded-xl flex items-center justify-center font-bold text-sm">
-                    {p.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-900 text-sm leading-tight">{p.name}</p>
-                    <p className="text-[12px] font-mono text-slate-400 mt-1">{p.uhid}</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => onEditPatient(p)}
-                    aria-label={`Edit ${p.name}`}
-                    className="p-2.5 bg-slate-50 text-slate-400 rounded-lg border border-slate-100"
-                  >
-                    <Edit3 size={14} />
-                  </button>
-                  <button
-                    onClick={() => unenroll(p)}
-                    disabled={busyUhid === p.uhid}
-                    aria-label={`Remove ${p.name} from group`}
-                    className="p-2.5 bg-red-50 text-red-400 rounded-lg border border-red-100"
-                  >
-                    <UserMinus size={14} />
-                  </button>
-                </div>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-2">{p.diagnosis}</p>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="py-24 text-center bg-white rounded-2xl border border-slate-100 flex flex-col items-center gap-4">
-            <Library size={40} className="text-slate-200" />
-            <p className="text-sm font-bold text-slate-400">Empty Registry</p>
-          </div>
-        )}
-      </div>
-
-      {/* Desktop Table View */}
-      <div className="hidden md:block bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest">
-                  Patient Identity
-                </th>
-                <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest">
-                  Surgical Assessment
-                </th>
-                <th className="px-8 py-4 text-[12px] font-bold text-slate-400 uppercase tracking-widest text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredEnrolled.length === 0 && (
-                <tr>
-                  <td colSpan={3} className="px-8 py-16 text-center text-sm font-bold text-slate-400">
-                    No patients enrolled
-                  </td>
-                </tr>
-              )}
-              {filteredEnrolled.map((p) => (
-                <tr key={p.uhid} className="hover:bg-slate-50/50 transition-colors group">
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center font-bold text-sm group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">
-                        {p.name.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-bold text-slate-900 text-sm">{p.name}</p>
-                        <p className="text-[12px] font-mono text-slate-400 mt-1">{p.uhid}</p>
-                      </div>
+      {filteredEnrolled.length === 0 ? (
+        <div className="card">
+          {enrolledPatients.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="No patients enrolled yet"
+              description="Enroll patients from your registry to build this cohort."
+              action={
+                <button type="button" onClick={() => setIsAdding(true)} className="btn-primary">
+                  <UserPlus size={18} aria-hidden="true" /> Enroll Patient
+                </button>
+              }
+            />
+          ) : (
+            <EmptyState icon={Search} title="No members match your filter" />
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Phones: card stack */}
+          <ul className="space-y-3 md:hidden">
+            {filteredEnrolled.map((p) => (
+              <li key={p.uhid} className="card space-y-3 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div
+                      aria-hidden="true"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-sm font-bold text-brand-ink"
+                    >
+                      {initials(p.name)}
                     </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <p className="text-xs text-slate-500 font-medium line-clamp-1 max-w-xs">{p.diagnosis}</p>
-                  </td>
-                  <td className="px-8 py-5 text-right space-x-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-ink">{p.name}</p>
+                      <p className="font-mono text-xs text-ink-3">{p.uhid}</p>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
                     <button
+                      type="button"
                       onClick={() => onEditPatient(p)}
                       aria-label={`Edit ${p.name}`}
-                      className="p-2.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-teal-600 transition-all shadow-sm"
+                      className={`${iconBtn} hover:text-ink`}
                     >
-                      <Edit3 size={16} />
+                      <Edit3 size={16} aria-hidden="true" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => unenroll(p)}
                       disabled={busyUhid === p.uhid}
                       aria-label={`Remove ${p.name} from group`}
-                      className="p-2.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-red-500 transition-all shadow-sm"
+                      className={`${iconBtn} hover:border-danger-line hover:text-danger-ink`}
                     >
-                      <UserMinus size={16} />
+                      <UserMinus size={16} aria-hidden="true" />
                     </button>
-                  </td>
+                  </div>
+                </div>
+                <p className="line-clamp-2 rounded-lg bg-surface-2 p-3 text-xs leading-relaxed text-ink-2">
+                  {p.diagnosis}
+                </p>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tablet and up: table */}
+          <div className="card hidden overflow-hidden md:block">
+            <table className="w-full border-collapse text-left">
+              <caption className="sr-only">Patients enrolled in {group.name}</caption>
+              <thead>
+                <tr className="border-b border-line bg-surface-2">
+                  <th scope="col" className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-ink-3">
+                    Patient
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-ink-3">
+                    Diagnosis
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-ink-3"
+                  >
+                    <span className="sr-only">Actions</span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {filteredEnrolled.map((p) => (
+                  <tr key={p.uhid} className="group transition-colors hover:bg-surface-2">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div
+                          aria-hidden="true"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-3 text-sm font-bold text-ink-2 transition-colors group-hover:bg-brand-soft group-hover:text-brand-ink"
+                        >
+                          {initials(p.name)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-ink">{p.name}</p>
+                          <p className="font-mono text-xs text-ink-3">{p.uhid}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="line-clamp-1 max-w-sm text-sm text-ink-2">{p.diagnosis}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onEditPatient(p)}
+                          aria-label={`Edit ${p.name}`}
+                          className={`${iconBtn} hover:text-ink`}
+                        >
+                          <Edit3 size={16} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => unenroll(p)}
+                          disabled={busyUhid === p.uhid}
+                          aria-label={`Remove ${p.name} from group`}
+                          className={`${iconBtn} hover:border-danger-line hover:text-danger-ink`}
+                        >
+                          <UserMinus size={16} aria-hidden="true" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
-      {/* Enrollment Registry Modal */}
       {isAdding && (
-        <Modal title="Cohort Enrollment" onClose={() => setIsAdding(false)} busy={busyUhid !== null}>
-          <div className="space-y-4">
-            <p className="text-xs text-slate-500 font-medium leading-relaxed">
-              Candidate selection for unit: <span className="text-teal-600 font-bold">{group.name}</span>.
-            </p>
-
+        <Modal
+          title="Enroll a patient"
+          description={`Add a patient from your registry to “${group.name}”.`}
+          onClose={() => setIsAdding(false)}
+          busy={busyUhid !== null}
+        >
+          <div className="space-y-3">
             {actionError && (
-              <div
-                role="alert"
-                className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-600"
-              >
+              <div role="alert" className="alert-error">
                 {actionError}
               </div>
             )}
 
-            <div className="space-y-2">
-              {availablePatients.length > 0 ? (
-                availablePatients.map((p) => (
-                  <button
-                    key={p.uhid}
-                    onClick={() =>
-                      run(
-                        p.uhid,
-                        () => onEnroll(p.uhid),
-                        'Enrollment failed. Please try again.',
-                        () => setIsAdding(false),
-                      )
-                    }
-                    disabled={busyUhid !== null}
-                    className="w-full text-left p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-teal-50 hover:border-teal-200 transition-all flex justify-between items-center group active:scale-[0.98]"
-                  >
-                    <div className="space-y-0.5">
-                      <p className="font-bold text-slate-900 text-sm group-hover:text-teal-700">{p.name}</p>
-                      <p className="text-[12px] font-mono text-slate-400">{p.uhid}</p>
-                    </div>
-                    <div className="p-2 bg-white rounded-lg border border-slate-200 shadow-sm group-hover:border-teal-200">
-                      <Plus size={18} className="text-slate-300 group-hover:text-teal-600" />
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="text-center py-16 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center gap-3">
-                  <Library size={32} className="text-slate-200" />
-                  <p className="text-xs font-bold text-slate-400">No Valid Records</p>
-                </div>
-              )}
-            </div>
+            {availablePatients.length > 0 ? (
+              <ul className="space-y-2">
+                {availablePatients.map((p) => (
+                  <li key={p.uhid}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        run(
+                          p.uhid,
+                          () => onEnroll(p.uhid),
+                          'Enrollment failed. Please try again.',
+                          () => setIsAdding(false),
+                        )
+                      }
+                      disabled={busyUhid !== null}
+                      className="group flex min-h-14 w-full items-center justify-between gap-3 rounded-xl border border-line bg-surface-2 p-3 text-left transition-colors hover:border-brand-line hover:bg-brand-soft disabled:opacity-60"
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-ink group-hover:text-brand-ink">
+                          {p.name}
+                        </span>
+                        <span className="block font-mono text-xs text-ink-3">{p.uhid}</span>
+                      </span>
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-ink-3 group-hover:border-brand-line group-hover:text-brand-ink">
+                        {busyUhid === p.uhid ? '…' : <Plus size={18} aria-hidden="true" />}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                icon={Library}
+                title="Everyone is already enrolled"
+                description="All patients in your registry are already in this group."
+                className="py-8"
+              />
+            )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsAdding(false)}
-            className="mt-6 w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-sm active:scale-95 shadow-lg transition-all"
-          >
-            Done
-          </button>
+          <div className="mt-6 flex justify-end">
+            <button type="button" onClick={() => setIsAdding(false)} className="btn-secondary w-full sm:w-auto">
+              Done
+            </button>
+          </div>
         </Modal>
       )}
     </div>

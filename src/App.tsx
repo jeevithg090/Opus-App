@@ -1,9 +1,10 @@
 import React, { Suspense, lazy, useCallback, useState } from 'react';
-import { LogOut } from 'lucide-react';
+import { AlertTriangle, LogOut, RefreshCw } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import { VIEW_TITLES, type ViewId } from './components/navigation';
 import { OpusLogo } from './components/Logo';
 import Spinner from './components/Spinner';
+import ThemeToggle from './components/ThemeToggle';
 import Notice, { type NoticeState } from './components/Notice';
 import StudyGroupModal from './components/StudyGroupModal';
 import PatientEditModal from './components/PatientEditModal';
@@ -11,7 +12,7 @@ import ConfirmActionModal, { type RecordAction } from './components/ConfirmActio
 import AuthScreen from './views/AuthScreen';
 import SetupScreen from './views/SetupScreen';
 import { isConfigured } from './lib/env';
-import { errorMessage } from './lib/clinical';
+import { errorMessage, initials } from './lib/clinical';
 import { submitIntake, type IntakeInput } from './lib/intake';
 import { addSurgery, appendSurgeryNotes } from './lib/surgeries';
 import { removeMediaFiles, uploadMediaFile } from './lib/storage';
@@ -20,6 +21,7 @@ import { usePatients } from './lib/hooks/usePatients';
 import { useMedia } from './lib/hooks/useMedia';
 import { useStudyGroups } from './lib/hooks/useStudyGroups';
 import { useAuditLogs } from './lib/hooks/useAuditLogs';
+import { useDocumentTitle } from './lib/hooks/useDocumentTitle';
 import { StorageLocation, type AuthUser, type Patient, type StudyGroup } from './types';
 
 const Dashboard = lazy(() => import('./views/Dashboard'));
@@ -42,7 +44,7 @@ const AuthenticatedApp: React.FC = () => {
   const auth = useSupabaseAuth();
 
   if (auth.loading) {
-    return <Spinner label="Checking session" className="min-h-screen bg-slate-50" />;
+    return <Spinner label="Checking your session…" showLabel className="min-h-dvh bg-canvas" />;
   }
   if (!auth.user) {
     return <AuthScreen onSignIn={auth.signIn} onSignUp={auth.signUp} />;
@@ -241,13 +243,19 @@ const Workspace: React.FC<{ user: AuthUser; onSignOut: () => Promise<void> }> = 
     }
   };
 
-  const heading = selectedPatient ? 'Patient Record' : selectedStudyId ? 'Study Group' : VIEW_TITLES[activeView];
+  const heading = selectedPatient
+    ? selectedPatient.name
+    : selectedStudyId
+      ? (studyGroups.find((s) => s.id === selectedStudyId)?.name ?? 'Study Group')
+      : VIEW_TITLES[activeView];
+  const section = selectedPatient ? 'Patient Registry' : selectedStudyId ? 'Study Groups' : null;
+  useDocumentTitle(heading);
 
   return (
-    <div className="flex min-h-screen overflow-x-hidden bg-slate-50 pb-24 selection:bg-teal-100 lg:pb-0">
+    <div className="flex min-h-dvh overflow-x-hidden bg-canvas pb-24 lg:pb-0">
       <a
         href="#main-content"
-        className="sr-only z-[900] rounded-lg bg-slate-900 px-4 py-2 text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+        className="sr-only z-[900] rounded-lg bg-inverse px-4 py-2 text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
       >
         Skip to content
       </a>
@@ -256,26 +264,43 @@ const Workspace: React.FC<{ user: AuthUser; onSignOut: () => Promise<void> }> = 
         onNavigate={navigate}
         onLogout={() => void onSignOut()}
         deletedCount={deletedPatients.length}
+        user={user}
       />
-      <div className="min-h-screen min-w-0 flex-1 lg:ml-64">
-        <header className="sticky top-0 z-[100] flex items-center justify-between border-b border-slate-100 bg-white/80 px-4 py-4 backdrop-blur-2xl md:px-12 md:py-5">
-          <div className="flex items-center gap-4">
-            <div className="block lg:hidden">
+      <div className="min-h-dvh min-w-0 flex-1 lg:ml-64">
+        <header className="sticky top-0 z-[100] flex h-16 items-center justify-between gap-3 border-b border-line bg-surface/85 px-4 backdrop-blur-xl md:px-8 lg:h-[72px] lg:px-12">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="lg:hidden">
               <OpusLogo size="sm" />
             </div>
-            <span className="hidden text-[13px] font-black uppercase italic tracking-[0.3em] text-slate-500 lg:inline">
-              {heading}
-            </span>
+            <nav aria-label="Breadcrumb" className="hidden min-w-0 text-sm lg:block">
+              <ol className="flex min-w-0 items-center gap-2">
+                {section && (
+                  <li className="shrink-0 text-ink-3">
+                    {section}
+                    <span className="ml-2 text-ink-4" aria-hidden="true">
+                      /
+                    </span>
+                  </li>
+                )}
+                <li aria-current="page" className="truncate font-semibold text-ink">
+                  {heading}
+                </li>
+              </ol>
+            </nav>
           </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 shadow-inner md:px-4">
-              <div
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-600 text-[12px] font-bold text-white"
+          <div className="flex shrink-0 items-center gap-2">
+            <ThemeToggle />
+            <div
+              className="flex h-11 items-center gap-2 rounded-xl border border-line bg-surface-2 px-2.5 lg:hidden"
+              title={`Signed in as ${user.name}`}
+            >
+              <span
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-soft-2 text-xs font-bold text-brand-ink"
                 aria-hidden="true"
               >
-                {user.name.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <span className="hidden max-w-[12rem] truncate text-[13px] font-black uppercase tracking-widest text-slate-700 sm:inline">
+                {initials(user.name)}
+              </span>
+              <span className="hidden max-w-[10rem] truncate text-sm font-semibold text-ink-2 sm:inline">
                 {user.name}
               </span>
               <span className="sr-only">Signed in as {user.name}</span>
@@ -284,19 +309,26 @@ const Workspace: React.FC<{ user: AuthUser; onSignOut: () => Promise<void> }> = 
               type="button"
               onClick={() => void onSignOut()}
               aria-label="Sign out"
-              className="rounded-xl border border-slate-100 bg-white p-2 text-slate-500 hover:text-red-600 lg:hidden"
+              className="btn-icon hover:text-danger-ink lg:hidden"
             >
               <LogOut size={18} aria-hidden="true" />
             </button>
           </div>
         </header>
-        <main id="main-content" className="mx-auto w-full max-w-7xl px-4 py-6 md:px-12 md:py-12">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-7xl px-4 py-6 outline-none md:px-8 md:py-10 lg:px-12"
+        >
           {loadError && (
             <div
               role="alert"
-              className="mb-6 flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between"
+              className="alert-error mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
             >
-              <span>Some data could not be loaded: {loadError}</span>
+              <span className="flex items-start gap-2">
+                <AlertTriangle size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
+                <span>Some data could not be loaded: {loadError}</span>
+              </span>
               <button
                 type="button"
                 onClick={() => {
@@ -304,16 +336,21 @@ const Workspace: React.FC<{ user: AuthUser; onSignOut: () => Promise<void> }> = 
                   void mediaApi.refetch();
                   void groupsApi.refetch();
                 }}
-                className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-red-700 shadow-sm"
+                className="btn-secondary min-h-9 shrink-0 px-3 py-1.5 text-xs"
               >
+                <RefreshCw size={14} aria-hidden="true" />
                 Retry
               </button>
             </div>
           )}
           {isLoading ? (
-            <Spinner label="Loading records" className="py-32" />
+            <Spinner label="Loading your records…" showLabel className="py-32" />
           ) : (
-            <Suspense fallback={<Spinner label="Loading view" className="py-32" />}>{renderView()}</Suspense>
+            <Suspense fallback={<Spinner label="Loading…" className="py-32" />}>
+              <div key={selectedUhid ?? selectedStudyId ?? activeView} className="animate-fade-in">
+                {renderView()}
+              </div>
+            </Suspense>
           )}
         </main>
       </div>
