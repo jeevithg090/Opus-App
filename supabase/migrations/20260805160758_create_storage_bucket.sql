@@ -1,0 +1,2 @@
+-- Intentionally empty: superseded by 20260807100000_create_opus_media_bucket.sql.
+-- Kept so local migration history matches databases where this version was applied.
