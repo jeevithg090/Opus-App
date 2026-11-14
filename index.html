@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -8,16 +8,43 @@
       name="description"
       content="Clinical photography and research management for surgeons: track patient media across surgical stages, manage study cohorts and keep an audit trail."
     />
-    <meta name="theme-color" content="#0d9488" />
+    <meta name="application-name" content="OPUS" />
+    <meta name="theme-color" content="#f6f8fa" />
+    <meta name="color-scheme" content="light dark" />
+    <!-- Clinical workspace behind a login: keep it out of search indexes. -->
     <meta name="robots" content="noindex" />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d9488'/%3E%3Ctext x='32' y='44' font-family='Arial,sans-serif' font-size='34' font-weight='900' font-style='italic' text-anchor='middle' fill='white'%3EO%3C/text%3E%3C/svg%3E"
+
+    <!-- Open Graph / link previews -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="OPUS" />
+    <meta property="og:title" content="OPUS · Operative Photo Unite and Storage" />
+    <meta
+      property="og:description"
+      content="Organise clinical photos, video, audio and PDFs by procedure and surgical stage, run study cohorts and keep an audit trail."
     />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:alt" content="The OPUS patient registry dashboard" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!-- Apply the saved (or system) colour theme before first paint to avoid a flash. -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('opus-theme');
+          var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+          if (dark) document.querySelector('meta[name="theme-color"]').content = '#0b1120';
+        } catch (e) {}
+      })();
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
   </head>
