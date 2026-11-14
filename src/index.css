@@ -1,16 +1,16 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
   --color-primary: var(--color-teal-600);
   --color-primary-hover: var(--color-teal-700);
   --color-primary-light: var(--color-teal-50);
-  
+
   --text-xs: 0.8125rem;
   --text-sm: 0.9375rem;
-  
+
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
   --radius-3xl: 1.5rem;
@@ -20,8 +20,13 @@
   body {
     @apply bg-slate-50 text-slate-900 antialiased;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply tracking-tight font-semibold;
   }
 }
@@ -30,11 +35,11 @@
   .btn-primary {
     @apply bg-teal-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-teal-700 transition-colors active:scale-[0.98];
   }
-  
+
   .card {
     @apply bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden;
   }
-  
+
   .input {
     @apply w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all;
   }
@@ -53,4 +58,23 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-slate-300;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
