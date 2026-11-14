@@ -184,3 +184,28 @@ describe('UploadMedia', () => {
     expect(onUpload.mock.calls[0][0]).toMatchObject({ surgeryId: 's1', files: [expect.any(File)] });
   });
 });
+
+describe('Dashboard form validation', () => {
+  it('shows field-level messages instead of submitting an empty form', async () => {
+    const user = userEvent.setup();
+    const onAddPatient = vi.fn();
+    render(
+      <Dashboard
+        patients={[]}
+        studyGroups={[]}
+        media={[]}
+        defaultSurgeon="Dr X"
+        onAddPatient={onAddPatient}
+        onSelectPatient={() => {}}
+      />,
+    );
+    await user.click(screen.getAllByRole('button', { name: /add patient/i })[0]);
+    await user.click(screen.getByRole('button', { name: /complete enrollment/i }));
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getByLabelText(/uhid/i)).toHaveAttribute('aria-invalid', 'true');
+    expect(dialog.getByText(/enter the hospital id/i)).toBeInTheDocument();
+    expect(onAddPatient).not.toHaveBeenCalled();
+    await user.type(dialog.getByLabelText(/uhid/i), 'H');
+    expect(dialog.getByLabelText(/uhid/i)).not.toHaveAttribute('aria-invalid');
+  });
+});
