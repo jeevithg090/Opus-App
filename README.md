@@ -1,141 +1,72 @@
-<div align="center">
+# OPUS — Operative Photo Unite and Storage
 
-# 🏥 OPUS — Operative Photo Unite and Storage
+**Clinical photography and research management for surgeons.**
 
-**Clinical photography and research management for surgeons**
-
-Track patient media across surgical stages, manage longitudinal study groups, and keep an immutable audit trail — all isolated per user.
-
-![React](https://img.shields.io/badge/React_19-61DAFB?logo=react&logoColor=000)
-![TypeScript](https://img.shields.io/badge/TypeScript_5.8-3178C6?logo=typescript&logoColor=fff)
-![Vite](https://img.shields.io/badge/Vite_6-646CFF?logo=vite&logoColor=fff)
-![Tailwind](https://img.shields.io/badge/Tailwind_CSS_4-06B6D4?logo=tailwindcss&logoColor=fff)
-![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=fff)
-![Tests](https://img.shields.io/badge/tests-86%2F86%20passing-22c55e)
-
-</div>
+OPUS is a web app for surgeons and clinical researchers to keep patient photographs, videos, audio memos and PDF documents organised by procedure and surgical stage, group patients into study cohorts, and keep an append-only audit trail of every change. Each user's data is isolated in the database by row-level security, and media lives in a private storage bucket that is only reachable through short-lived signed URLs.
 
 ---
 
-## 📖 Overview
+## Features
 
-OPUS is a specialized web application built for surgeons and researchers to:
+- **Patient registry** — register patients with UHID, demographics, lead surgeon and diagnosis. Adding a surgery date creates a "Primary Surgery" record automatically. Search by name or UHID.
+- **Post-operative day (POD)** — computed from the most recent procedure using calendar days in the user's time zone.
+- **Media intake** — upload images, video, audio and PDFs (up to 50 MB each) against an existing or new procedure and a surgical stage (pre-, intra- or post-operative). Notes entered at intake are appended to the procedure's operative log with the stage and date.
+- **Patient record view** — gallery filtered by procedure and stage with per-stage counts, a full-screen viewer for every media type (including inline PDF), links to open/download originals, and the procedure's operative notes.
+- **Study groups** — create cohorts, enrol and remove patients, see member counts.
+- **Archive** — soft-delete patients into an archive with a 30-day retention countdown, restore them, or permanently delete them (typing the UHID is required to confirm).
+- **Audit trail** — every create/update/archive/restore/purge/enrol action is logged with user and timestamp; the log is searchable and cannot be edited or deleted through the API.
+- **Archive tracking** — tag media as "Local Vault" or "Google Drive" to record where copies have been archived. This is metadata only; OPUS does not talk to Google Drive.
+- **Responsive, accessible UI** — sidebar on desktop and a bottom dock on phones; labelled dialogs that close with Escape, keyboard-reachable controls, a skip link, and reduced-motion support.
 
-- Maintain a **patient registry** with full clinical details (UHID, diagnosis, lead surgeon, procedure history)
-- **Upload surgical media** (photos, videos, audio memos, PDF findings) organized by surgical stage
-- Group patients into **longitudinal study cohorts** for research
-- Track every interaction through an **immutable audit trail**
-- Keep all data **isolated per user** via row-level security
+## Tech stack
 
-Each patient's media is organized by **surgical stage** — *Pre-operative, Intra-operative, Post-operative* — with automatic **POD (Post-Operative Day)** calculation.
+| Layer   | Technology                                                      |
+| ------- | --------------------------------------------------------------- |
+| UI      | React 19, TypeScript 5.8 (strict), Tailwind CSS 4, lucide-react |
+| Build   | Vite 6                                                          |
+| Backend | Supabase — Postgres with row-level security, Auth, Storage      |
+| Quality | ESLint 9 (typescript-eslint, react-hooks), Prettier 3           |
+| Tests   | Vitest 5, Testing Library, jsdom; optional live-Supabase suite  |
+| CI      | GitHub Actions                                                  |
 
----
-
-## ✨ Features
-
-### Authentication
-- Email/password sign-up and sign-in (Supabase Auth)
-- Auto-created user profile with role (`Surgeon`, `Fellow`, `Researcher`)
-- Session persistence and sign-out
-
-### Patient Registry
-- Add patients with UHID, name, and diagnosis (auto-creates a "Primary Surgery" record when a date is provided)
-- Search by name or UHID (case-insensitive)
-- Edit records via the "Vault Correction" modal
-- **Soft delete** (moved to Archive) and **hard delete** (permanent purge)
-- POD badge computed from the most recent surgery date
-
-### Archive (Recycle Bin)
-- 30-day retention countdown per record
-- Restore to active registry
-- Purge permanently (cascades to surgeries, media, and study-group memberships)
-
-### Media Intake
-- Upload **real files** from disk: images, videos, audio, PDFs
-- Files stored in the Supabase **`opus-media`** storage bucket (50 MB limit), one entry per file with the real public URL
-- Media organized by surgery + stage; filterable gallery with full-screen viewer
-- Download/export prompt (JPG/PNG/PDF/RAW)
-- Cloud sync tracking: each entry flagged `Local Storage` or `Google Drive` (location metadata)
-
-### Study Groups (Research Units)
-- Create/update cohorts with description
-- Enroll/unenroll patients, live member count
-- Group membership reflected on dashboard patient cards
-
-### Audit Trail
-- Immutable log of every clinical action (11 action types: patient creation/correction, intake upload, archival, restore, purge, sync, group operations…)
-- Filterable by user, action, target, or details
-
-### Mobile-Ready UI
-- Bottom dock navigation on phones, sidebar on desktop
-- Touch-accessible media controls
-- Safe-area aware (notch support), keyboard-safe modals
-
----
-
-## 🧱 Tech Stack
-
-| Layer | Technology | Role |
-|---|---|---|
-| UI | React 19 + TypeScript | Components & state |
-| Build | Vite 6 | Dev server & bundling |
-| Styling | Tailwind CSS 4 (+ lucide-react icons) | Styling |
-| Backend | Supabase Postgres | Data + RLS |
-| Auth | Supabase Auth | Email/password |
-| Storage | Supabase Storage (`opus-media`) | Media files |
-| Tests | Node integration suite (`tests/deep-test.mjs`) | End-to-end backend checks |
-
----
-
-## 🏗 Architecture
+## Architecture
 
 ```
-┌──────────────────────┐        ┌──────────────────────────┐
-│   React SPA (Vite)   │  HTTP  │       Supabase          │
-│                      │ ─────► │  ┌────────────────────┐ │
-│  App.tsx             │        │  │ Auth (email/pass)  │ │
-│  views/  (7 views)   │        │  ├────────────────────┤ │
-│  lib/hooks/ (5 hooks)│        │  │ Postgres + RLS     │ │
-│  lib/mappers.ts      │        │  │  (7 tables)        │ │
-│  lib/supabase.ts     │        │  ├────────────────────┤ │
-│                      │        │  │ Storage: opus-media│ │
-└──────────────────────┘        └──────────────────────┘
+┌───────────────────────────── Browser (React SPA) ─────────────────────────────┐
+│                                                                               │
+│  views/        Dashboard · PatientDetails · UploadMedia · StudyGroups ·        │
+│                AuditTrail · RecycleBin · AuthScreen · SetupScreen             │
+│  components/   Sidebar · Modal · ConfirmActionModal · PatientEditModal · …    │
+│                                                                               │
+│  lib/hooks/    useSupabaseAuth · usePatients · useMedia · useStudyGroups ·     │
+│                useAuditLogs   (data fetching + mutations, typed errors)       │
+│  lib/          clinical.ts (pure domain logic: POD, retention, search, paths)  │
+│                intake.ts   (intake workflow with rollback, dependency-injected)│
+│                storage.ts  (uploads + batch signed URLs)                       │
+│                mappers.ts  (snake_case rows ⇄ domain types)                    │
+└───────────────────────────────────────┬───────────────────────────────────────┘
+                                        │ supabase-js (anon key + user JWT)
+┌───────────────────────────────────────▼───────────────────────────────────────┐
+│ Supabase                                                                       │
+│  Auth ─ email/password; trigger creates a `profiles` row on sign-up            │
+│  Postgres ─ profiles · patients · surgeries · media_entries · study_groups ·   │
+│             study_group_patients · audit_entries   (RLS on every table)        │
+│  Storage ─ private bucket `opus-media`, objects under `{user_id}/{uhid}/…`     │
+└────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Project structure
+- The app talks to Supabase directly from the browser; all authorisation is enforced in the database by RLS policies, not in client code.
+- Media rows store the storage **object key**. When media is loaded, the keys are exchanged for signed URLs (valid for one hour) in a single batch request. Rows created by older versions that stored a public URL are handled transparently.
+- Views are lazy-loaded, and React and supabase-js are split into separate vendor chunks.
 
-```
-.
-├── App.tsx                     # Root: routing, modals, security checkpoint
-├── components/
-│   ├── Logo.tsx
-│   └── Sidebar.tsx             # Desktop sidebar + mobile bottom dock
-├── views/
-│   ├── Dashboard.tsx           # Registry, search, recent activity, add patient
-│   ├── PatientDetails.tsx      # Media gallery, stages, sync, viewer
-│   ├── UploadMedia.tsx         # Intake form (files + notes)
-│   ├── StudyGroupDetailView.tsx# Cohort members + enrollment
-│   ├── RecycleBin.tsx          # Archive (30-day retention)
-│   └── AuditTrail.tsx          # Immutable log + filter
-├── lib/
-│   ├── supabase.ts             # Supabase client
-│   ├── mappers.ts              # DB → domain mappers
-│   └── hooks/                  # useSupabaseAuth, usePatients, useMedia,
-│                               # useStudyGroups, useSurgeries, useAuditLogs
-├── supabase/migrations/        # Versioned SQL migrations
-├── tests/deep-test.mjs         # 86-check integration suite
-└── types.ts                    # Domain types
-```
-
----
-
-## 🚀 Getting Started
+## Getting started
 
 ### Prerequisites
-- **Node.js 18+**
-- A **Supabase project** (free tier is fine) — [create one here](https://supabase.com)
 
-### 1. Install dependencies
+- Node.js 20 or newer (CI uses Node 22)
+- A Supabase project (the free tier is enough) and, for applying migrations, the [Supabase CLI](https://supabase.com/docs/guides/cli)
+
+### 1. Install
 
 ```bash
 npm install
@@ -143,145 +74,132 @@ npm install
 
 ### 2. Configure environment variables
 
-Create a `.env` file in the project root (it is gitignored — never commit it):
-
-```env
-VITE_SUPABASE_URL=https://YOUR-PROJECT-REF.supabase.co
-VITE_SUPABASE_ANON_KEY=YOUR-ANON-KEY
+```bash
+cp .env.example .env
 ```
 
-> Find both in Supabase Dashboard → **Project Settings → API**. Use the **anon/public** key — the service role key must never be exposed in the client.
+| Variable                 | Required | Description                                            |
+| ------------------------ | -------- | ------------------------------------------------------ |
+| `VITE_SUPABASE_URL`      | yes      | Project URL, e.g. `https://<project-ref>.supabase.co`  |
+| `VITE_SUPABASE_ANON_KEY` | yes      | The **anon / public** API key (Project Settings → API) |
+
+Both values are embedded in the browser bundle. Never use the service-role key here. If either variable is missing the app shows a configuration screen instead of failing.
 
 ### 3. Set up the database
 
-The schema lives in `supabase/migrations/`. With the Supabase CLI:
-
 ```bash
 supabase login
-supabase link --project-ref YOUR-PROJECT-REF
+supabase link --project-ref <project-ref>
 supabase db push
 ```
 
-This applies all migrations — schema, triggers, RLS policies, and the `opus-media` storage bucket.
+This applies everything in `supabase/migrations/`: tables, the profile trigger, RLS policies, and the private `opus-media` storage bucket with per-user folder policies.
 
-### 4. Run the app
+### 4. Run
 
 ```bash
 npm run dev
 ```
 
-Dev server runs on **http://localhost:3000** (host `0.0.0.0`, so it's reachable from your phone on the same LAN for mobile testing).
+The dev server listens on <http://localhost:3000> and on your LAN address, so you can open it from a phone on the same network.
 
----
+## Scripts
 
-## 📜 Database Migrations
+| Command                    | Description                                          |
+| -------------------------- | ---------------------------------------------------- |
+| `npm run dev`              | Start the Vite dev server on port 3000               |
+| `npm run build`            | Type-check and build for production into `dist/`     |
+| `npm run preview`          | Serve the production build locally (port 4173)       |
+| `npm run lint`             | ESLint                                               |
+| `npm run typecheck`        | TypeScript (`tsc --noEmit`)                          |
+| `npm run format`           | Format with Prettier (`format:check` to verify only) |
+| `npm test`                 | Unit and component tests (Vitest)                    |
+| `npm run test:coverage`    | Unit tests with a coverage report for `src/lib`      |
+| `npm run test:integration` | Live suite against your Supabase project (see below) |
 
-| Migration | Purpose |
-|---|---|
-| `20260805135445_initial_schema.sql` | Core tables, profile trigger, RLS policies |
-| `20260805140329_fix_id_types.sql` | Surgeries/media IDs → text (client-generated IDs) |
-| `20260805151524_fix_profile_trigger.sql` | Role/name from sign-up metadata |
-| `20260805160758_create_storage_bucket.sql` | (placeholder — superseded) |
-| `20260807000000_fix_study_group_patients_rls.sql` | **Security fix:** study-group membership now verifies patient ownership too |
-| `20260807100000_create_opus_media_bucket.sql` | Creates `opus-media` bucket + storage RLS |
+## Testing
 
----
+**Unit and component tests** (`tests/unit/`) run without a backend and cover the domain logic and key UI flows:
 
-## ⚙️ Scripts
+- `clinical.test.ts` — POD and retention arithmetic (including time-zone and DST edge cases), MIME detection, storage-path building and parsing, search and audit filtering, recent-activity ordering
+- `intake.test.ts` — the intake workflow: new vs existing procedure, notes appended to the operative log, validation, and cleanup of uploaded files when a later step fails
+- `storage.test.ts` — batch URL signing and upload paths with a mocked Supabase client
+- `mappers.test.ts` — row mapping, role guarding, patient-draft conversion, configuration parsing
+- `components.test.tsx` — the UHID-typed confirmation for permanent deletion, registry search, the add-patient form and its error state, and intake form validation
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start Vite dev server (port 3000) |
-| `npm run build` | Production build → `dist/` |
-| `npm run preview` | Preview the production build |
-| `npm run lint` | TypeScript type-check (`tsc --noEmit`) |
-| `npm run test:deep` | Run the 86-check integration suite |
+**Integration suite** (`tests/integration/deep-test.mjs`) runs against a real Supabase project using the credentials in `.env`. It creates two throwaway users and checks auth, RLS isolation between users, CRUD paths, constraints, private storage and the audit log. It exits without doing anything if the variables are not set.
 
----
+> The integration suite writes to the project it is pointed at, and test users and audit rows cannot be deleted with the anon key. Run it against a development project only.
 
-## 🧪 Testing
+## Deployment
 
-```bash
-npm run test:deep
+OPUS builds to static files, so any static host works (Vercel, Netlify, Cloudflare Pages, S3 + CloudFront, …):
+
+1. Apply the migrations to your production Supabase project (`supabase db push`).
+2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the host's build environment.
+3. Build command `npm run build`, output directory `dist`.
+4. In Supabase Auth settings, add the deployed URL to the allowed site/redirect URLs so confirmation emails link back correctly.
+
+The app has no client-side routes, so no SPA rewrite rules are needed.
+
+## Security model
+
+| Table                  | Policy                                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------ |
+| `profiles`             | A user can read and write only their own profile                                           |
+| `patients`             | Rows are owned by `user_id` (defaults to `auth.uid()`)                                     |
+| `surgeries`            | Owned rows; new rows must reference one of the caller's patients                           |
+| `media_entries`        | Owned rows; new rows must reference the caller's patient and (if set) the caller's surgery |
+| `study_groups`         | Owned rows                                                                                 |
+| `study_group_patients` | Both the group and the patient must belong to the caller                                   |
+| `audit_entries`        | Read and insert own entries only — no update or delete                                     |
+
+Storage: `opus-media` is a **private** bucket. Users can only read and write objects in their own `{user_id}/` folder, and the app reads media through signed URLs that expire after one hour.
+
+## Project structure
+
+```
+.
+├── index.html                  # HTML shell and page metadata
+├── src/
+│   ├── main.tsx                # Entry point
+│   ├── App.tsx                 # Config/auth gate, workspace state, modals
+│   ├── types.ts                # Domain types
+│   ├── index.css               # Tailwind theme and global styles
+│   ├── components/             # Sidebar, Modal, confirmation/edit dialogs, Notice, Spinner
+│   ├── views/                  # One component per screen
+│   └── lib/
+│       ├── clinical.ts         # Pure domain helpers
+│       ├── intake.ts           # Intake workflow
+│       ├── storage.ts          # Storage uploads and signed URLs
+│       ├── surgeries.ts        # Surgery writes
+│       ├── mappers.ts          # DB row ⇄ domain mapping
+│       ├── patientDraft.ts     # New-patient form model
+│       ├── env.ts / supabase.ts# Configuration and client
+│       └── hooks/              # Data hooks per resource
+├── supabase/migrations/        # Versioned SQL schema, RLS and storage policies
+├── tests/
+│   ├── unit/                   # Vitest unit and component tests
+│   └── integration/            # Live Supabase suite
+└── .github/workflows/ci.yml    # Format, lint, type-check, test, build
 ```
 
-The suite is a Node integration test against your **live Supabase project** (it uses the credentials in `.env`). It creates two throwaway users and validates the real query paths the app uses:
+## Database migrations
 
-| Phase | Coverage |
-|---|---|
-| P1 | Auth: signup, profile trigger, roles, sign-in, wrong password, sign-out, session persistence |
-| P1b | RLS isolation between users + unauthenticated access denial |
-| P2 | Patients: create/auto-surgery, search, duplicate UHID, edit, soft-delete → archive → restore, hard-delete cascade, POD & retention math |
-| P3 | Study groups: create/update/enroll/unenroll, count + membership reflection, cross-user enrollment blocked |
-| P4 | Media: all 4 types, storage round-trip (upload → public URL → HTTP 200), CHECK/FK constraints, dashboard feed + PatientDetails filters, cloud sync, cascade behavior, upload validation logic |
-| P5 | Audit: all 11 actions, read-back, search filter, sort, RLS |
-| P6 | Cleanup of test data |
+| Migration                                         | Purpose                                                                        |
+| ------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `20260805135445_initial_schema.sql`               | Core tables, profile trigger, RLS                                              |
+| `20260805140329_fix_id_types.sql`                 | Surgery and media IDs become client-generated text                             |
+| `20260805151524_fix_profile_trigger.sql`          | Name and role taken from sign-up metadata                                      |
+| `20260805160758_create_storage_bucket.sql`        | Intentionally empty (kept for migration history)                               |
+| `20260807000000_fix_study_group_patients_rls.sql` | Group membership requires owning both the group and the patient                |
+| `20260807100000_create_opus_media_bucket.sql`     | `opus-media` bucket and per-user folder policies                               |
+| `20261114000000_harden_security.sql`              | Private bucket, ownership checks on child rows, trigger `search_path`, indexes |
 
-**Cleanup caveats** (by design): test auth users can't be deleted without a service-role key, and `audit_entries` has no DELETE policy (immutable). Leftover test users/audit rows may accumulate across runs.
+## Known limitations
 
----
-
-## 🔐 Security Model
-
-All tables enable **Row-Level Security**; every row carries `user_id` (defaulting to `auth.uid()`).
-
-| Table | Policy |
-|---|---|
-| `profiles` | Users manage only their own profile |
-| `patients` | Users manage only their own patients |
-| `surgeries` | Users manage only their own surgeries |
-| `media_entries` | Users manage only their own media |
-| `study_groups` | Users manage only their own groups |
-| `study_group_patients` | Membership requires **both** group *and* patient ownership |
-| `audit_entries` | Read/insert own entries only; no update/delete (immutable) |
-
-**Storage:** the `opus-media` bucket is public-read (for rendering); authenticated users can only upload/manage objects under their own `{user-id}/` folder.
-
----
-
-## 🗄 Data Model
-
-- **profiles** — extends `auth.users`; `name`, `role`, `email`
-- **patients** — `uhid` (PK), `name`, `age_years/months`, `gender`, `diagnosis`, `primary_surgeon`, `date_of_surgery`, `deleted_at` (soft delete)
-- **surgeries** — `title`, `date`, `notes`, `ot_notes`, `finding_url`; belongs to a patient
-- **media_entries** — `url`, `thumbnail_url`, `stage` (3-stage enum), `type` (image/video/audio/pdf), `tags`, `storage_location`; optional `surgery_id`
-- **study_groups** — `name`, `description`, `drive_folder_id`, `last_sync`
-- **study_group_patients** — many-to-many join (cascades on both sides)
-- **audit_entries** — `user_id`, `user_name`, `action`, `target_id`, `details`, `timestamp`
-
----
-
-## 🔧 Troubleshooting
-
-| Symptom | Cause / Fix |
-|---|---|
-| Adding a patient silently fails | Was fixed — empty `dateOfSurgery` is now coerced to `null` (DATE columns reject `''`) |
-| Uploaded image shows a stock photo | Was fixed — uploads previously used a hardcoded placeholder URL; files now go to `opus-media` storage. Re-run `supabase db push` if on an old checkout |
-| New uploads don't appear | There's no live subscription yet — **refresh the page** after uploading |
-| Media upload fails with RLS error | Ensure the storage migration was applied and you're logged in |
-
----
-
-## 📦 Deployment
-
-```bash
-npm run build
-```
-
-Then deploy the `dist/` folder to any static host (Vercel, Netlify, Cloudflare Pages). Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as environment variables in the hosting provider.
-
----
-
-## ⚠️ Known Limitations
-
-- No UI to delete a media entry or a surgery (schema supports it)
-- No real Google Drive sync — `storage_location` is tracking metadata only
-- `recharts` and `vite-plugin-pwa` are listed in `package.json` but not wired up yet
-- No real-time subscriptions — data updates on refetch/reload
-- `audit_entries` cannot be deleted via the API (intentional immutability)
-
----
-
-## 📝 License
-
-Private project — all rights reserved.
+- A UHID is a global primary key, so two different users cannot register the same UHID. Making patients unique per user would need a schema change.
+- There is no UI yet for deleting a single media entry or procedure (the schema supports it).
+- Archived records are not purged automatically after 30 days; the countdown is informational until a scheduled job is added.
+- Data refreshes after each action and on reload; there are no real-time subscriptions.
+- "Google Drive" is a tracking label only; files always live in Supabase Storage.
