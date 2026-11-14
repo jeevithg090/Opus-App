@@ -1,3 +1,12 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+coverage
+*.tsbuildinfo
+
 # Logs
 logs
 *.log
@@ -5,29 +14,26 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Environment variables (contains Supabase keys)
+# Environment variables (contain Supabase keys)
 .env
 .env.*
 !.env.example
+*.local
 
-# Tool settings (contains management API tokens)
+# Local tool settings
 .commandcode
 
-# Supabase CLI cache
+# Supabase CLI
 supabase/.temp
+supabase/.branches
 
-# Editor directories and files
+# Editors and OS files
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj

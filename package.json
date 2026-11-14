@@ -1,15 +1,20 @@
 {
-  "name": "opus---operative-photo-unite-and-storage",
+  "name": "opus",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "lint": "tsc --noEmit",
-    "test:deep": "node tests/deep-test.mjs",
-    "test:sim": "node tests/simulate-fixes.mjs"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "node tests/integration/deep-test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
@@ -17,14 +22,36 @@
     "lucide-react": "^0.563.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "recharts": "^3.7.0",
     "tailwindcss": "^4.2.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.10",
     "@types/node": "^22.14.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.14.0",
+    "jsdom": "^31.0.1",
+    "prettier": "^3.10.1",
     "typescript": "~5.8.2",
+    "typescript-eslint": "^8.72.2",
     "vite": "^6.2.0",
-    "vite-plugin-pwa": "^1.3.0"
+    "vitest": "^5.1.0"
+  },
+  "description": "Clinical photography and research management for surgeons",
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.8"
+    }
   }
 }
